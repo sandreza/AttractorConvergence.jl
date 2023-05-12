@@ -58,7 +58,7 @@ function (step::RungeKutta4)(f, x, dt)
     return nothing
 end
 
-export StateEmbedding, StateTreeEmbedding
+export StateEmbedding, StateTreeEmbedding, level_global_indices, parent_global_index
 
 abstract type AbstractEmbedding end
 
@@ -90,4 +90,7 @@ local_index(global_index, levels) = global_index - 2^levels + 1 # markov index f
 child_global_index(new_index, global_parent_index, level) = (2 * (local_index(global_parent_index, level - 1)-1) + new_index - 1) + 2^(level) 
 # simplified:
 child_global_index(new_index, global_parent_index) = 2 * global_parent_index + new_index - 1 
+# global_indices per level
+level_global_indices(level) = 2^(level-1):2^level-1
+parent_global_index(child_index) = div(child_index, 2)
 end # module AttractorConvergence
