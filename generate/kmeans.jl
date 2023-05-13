@@ -1,3 +1,9 @@
+
+hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
+timeseries = read(hfile["timeseries"])
+s_timeseries = read(hfile["symmetrized timeseries"])
+joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose
+close(hfile)
 @info "starting k-means"
 X = joined_timeseries[:, 1:1:end]
 ##

@@ -45,3 +45,4 @@ hfile = h5open(pwd() * "/data/lorenz.hdf5", "w")
 hfile["timeseries"] = timeseries
 hfile["symmetrized timeseries"] = s_timeseries
 hfile["dt"] = Δt
+close(hfile)
