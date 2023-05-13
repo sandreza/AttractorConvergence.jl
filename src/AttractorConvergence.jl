@@ -92,5 +92,5 @@ child_global_index(new_index, global_parent_index, level) = (2 * (local_index(gl
 child_global_index(new_index, global_parent_index) = 2 * global_parent_index + new_index - 1 
 # global_indices per level
 level_global_indices(level) = 2^(level-1):2^level-1
-parent_global_index(child_index) = div(child_index, 2)
+parent_global_index(child_index) = div(child_index, 2) # both global
 end # module AttractorConvergence

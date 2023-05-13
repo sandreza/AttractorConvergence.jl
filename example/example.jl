@@ -1,50 +1,115 @@
 using ParallelKMeans
-using GLMakie
+using GLMakie, Revise
 using MarkovChainHammer, AttractorConvergence
 using ProgressBars, LinearAlgebra, Statistics, Random
 using MarkovChainHammer.BayesianMatrix
-
-import MarkovChainHammer.TransitionMatrix: generator, holding_times, steady_state, perron_frobenius
+import MarkovChainHammer.TransitionMatrix: generator, holding_times, steady_state, perron_frobenius, entropy
 import MarkovChainHammer.Utils: histogram, autocovariance
+Random.seed!(12345)
 
 @info "evolving lorenz equations"
-initial_condition = [14.0, 20.0, 27.0]
-dt = 0.005
-iterations = 2 * 10^5
-
-timeseries = zeros(3, iterations)
-markov_chain = zeros(Int, iterations)
-timeseries[:, 1] .= initial_condition
-
-for i in ProgressBar(2:iterations)
-    # take one timestep forward via Runge-Kutta 4
-    state = rk4(lorenz!, timeseries[:, i-1], dt)
-    timeseries[:, i] .= state
+function lorenz_data(; timesteps=10^7, Δt=0.005, ϵ=0.0, ρ=t -> 28.0, initial_condition=[1.4237717232359446, 1.778970017190979, 16.738782836244038])
+    rhs(x, t) = lorenz(x, ρ(t), 10.0, 8.0 / 3.0)
+    x_f = zeros(3, timesteps)
+    x_f[:, 1] .= initial_condition
+    evolve! = RungeKutta4(3)
+    for i in ProgressBar(2:timesteps)
+        xOld = x_f[:, i-1]
+        evolve!(rhs, xOld, Δt)
+        if ϵ > 0.0
+            𝒩 = randn(3)
+            @inbounds @. x_f[:, i] = evolve!.xⁿ⁺¹ + ϵ * sqrt(Δt) * 𝒩
+        else 
+            @inbounds @. x_f[:, i] = evolve!.xⁿ⁺¹
+        end
+    end
+    return x_f, Δt
 end
+function lorenz_symmetry(timeseries)
+    symmetrized_timeseries = zeros(size(timeseries))
+    for i in ProgressBar(1:size(timeseries)[2])
+        symmetrized_timeseries[1, i] = -timeseries[1, i]
+        symmetrized_timeseries[2, i] = -timeseries[2, i]
+        symmetrized_timeseries[3, i] = timeseries[3, i]
+    end
+    return symmetrized_timeseries
+end
+
+function distance_matrix(data)
+    d_mat = zeros(size(data)[2], size(data)[2])
+    for j in ProgressBar(1:size(data)[2])
+        Threads.@threads for i in 1:j-1
+            @inbounds d_mat[i,j] = norm(data[:, i] - data[:, j])
+        end
+    end
+    return Symmetric(d_mat)
+end
+timesteps = 10^7
+timeseries, Δt = lorenz_data(timesteps=timesteps, Δt=0.005)
+s_timeseries = lorenz_symmetry(timeseries)
+joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose
 ##
 @info "starting k-means"
-X = timeseries[:,1:10:end]
-numstates = 2000
-r = kmeans(X, numstates; max_iters=10000)
+X = joined_timeseries[:,1:1:end]
+##
+function split(X)
+    numstates = 2
+    r0 = kmeans(X, numstates; max_iters=10000)
+    child_0 = (r0.assignments .== 1)
+    child_1 = (!).(child_0)
+    children = [view(X, :, child_0), view(X, :, child_1)]
+    return r0.centers, children
+end
+level_global_indices(level) = 2^(level-1):2^level-1
+##
+levels = 10
+parent_views = []
+centers_list = []
+push!(parent_views, X)
+## Level 1
+centers, children = split(X)
+push!(centers_list, [centers[:, 1], centers[:, 2]])
+push!(parent_views, children[1])
+push!(parent_views, children[2])
+## Levels 2 through levels
+for level in ProgressBar(2:levels)
+    for parent_global_index in level_global_indices(level)
+        centers, children = split(parent_views[parent_global_index])
+        push!(centers_list, [centers[:, 1], centers[:, 2]])
+        push!(parent_views, children[1])
+        push!(parent_views, children[2])
+    end
+end
 @info "done with k-means"
-
+##
+# constructing embedding with 2^levels number of states
+embedding = StateTreeEmbedding(centers_list, levels)
 ##
 @info "computing markov embedding"
-markov_states = [r.centers[:, i] for i in 1:numstates]
-# markov_states = [timeseries[:, i] for i in 1:floor(Int, iterations/numstates):iterations]
-embedding = StateEmbedding(markov_states)
-
-for i in ProgressBar(1:iterations)
+markov_chain = zeros(Int64, size(timeseries)[2])
+for i in ProgressBar(1:size(timeseries)[2])
     state = timeseries[:, i]
     # partition state space according to most similar markov state
     # This will be sped up by using a tree structure
-    markov_index = embedding(state)
-    markov_chain[i] = markov_index
+    markov_i = embedding(state)
+    @inbounds markov_chain[i] = markov_i
+end
+@info "computing symmetric embedding"
+s_markov_chain = zeros(Int64, size(s_timeseries)[2])
+for i in ProgressBar(1:size(s_timeseries)[2])
+    state = s_timeseries[:, i]
+    # partition state space according to most similar markov state
+    # This will be sped up by using a tree structure
+    markov_i = embedding(state)
+    @inbounds s_markov_chain[i] = markov_i
 end
 ##
 @info "constructing the generator"
-Q = mean(BayesianGenerator(markov_chain; dt=dt))
+Q = BayesianGenerator(markov_chain; dt= Δt)
+Qb = BayesianGenerator(s_markov_chain, Q.posterior; dt=Δt)
+Q = mean(Qb)
 p = steady_state(Q)
+entropy(p)
 Q̃ = Diagonal(1 ./ sqrt.(p)) * Q * Diagonal(sqrt.(p))
 Q̃ₛ = Symmetric((Q̃ + Q̃') / 2)
 Q̃ₐ = (Q̃ - Q̃') / 2
@@ -66,7 +131,7 @@ modes_tr = [transfer_mode_1, transfer_mode_2, transfer_mode_3, transfer_mode_4]
 ##
 subsampling = 1
 indexstart = 1
-indexend = minimum([1000000, iterations])
+indexend = minimum([1000000, timesteps])
 indices = indexstart:subsampling:indexend
 subsampled_timeseries = timeseries[:, indices]
 colors = Vector{Float64}[]
