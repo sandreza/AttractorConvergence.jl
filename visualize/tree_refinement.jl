@@ -1,7 +1,7 @@
 levels = round(Int, log2(maximum(union(markov_chain))))
 inds = 1:5:10^7
+# set_theme!(backgroundcolor=:black)
 fig = Figure(resolution=(2000, 2000))
-set_theme!(backgroundcolor=:black)
 for i in 1:9
     ii = (i - 1) ÷ 3 + 1
     jj = (i - 1) % 3 + 1
