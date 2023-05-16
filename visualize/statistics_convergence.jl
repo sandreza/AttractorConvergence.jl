@@ -1,4 +1,4 @@
-using GLMakie, AttractorConvergence
+using GLMakie, AttractorConvergence, SparseArrays
 import MarkovChainHammer.Utils: histogram
 using MarkovChainHammer.BayesianMatrix
 
@@ -24,6 +24,10 @@ function get_markov_states(centers_list::Vector{Vector{Vector{Float64}}}, level)
     end
     return markov_states
 end
+function sparsify(Q; threshold = eps(10^6.0))
+    Q[abs.(Q) .< threshold] .= 0
+    return sparse(Q)
+end
 # 1 + 
 ##
 # Need consistency between centers and markov_chain
@@ -34,10 +38,14 @@ time_moment = mean(gₜ)
 observable_lists = Vector{Float64}[]
 probabilities_list = Vector{Float64}[]
 observable_values = Float64[]
+sparsity_list = Float64[]
 for level in ProgressBar(level_list)
     markov_states = get_markov_states(centers_list, level)
     coarse_grained_markov_chain = div.(markov_chain .- 1, 2^(10 - level)) .+ 1
     Q = mean(BayesianGenerator(coarse_grained_markov_chain; dt=Δt))
+    sQ = sparsify(Q)
+    sparsity = length(sQ.nzval) / length(sQ)
+    push!(sparsity_list, sparsity)
     p = steady_state(Q)
     push!(probabilities_list, p)
     gₑ = observable.(markov_states)
@@ -75,7 +83,10 @@ moment_functions = [t -> t^i for i in 1:10]
 num_moments = 6
 temporal_moments = [mean(moment_functions[i].(gₜ)) for i in 1:num_moments]
 ensemble_moment_list = Vector{Float64}[]
+relative_error_list = Vector{Float64}[]
 for level in 1:10
     ensemble_moments = [sum(moment_functions[i].(observable_lists[level]) .* probabilities_list[level]) for i in 1:num_moments]
     push!(ensemble_moment_list, ensemble_moments)
+    relative_error = [abs(ensemble_moments[i] - temporal_moments[i]) / temporal_moments[i] * 100 for i in 1:num_moments]
+    push!(relative_error_list, relative_error)
 end
