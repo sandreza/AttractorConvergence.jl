@@ -58,7 +58,7 @@ function (step::RungeKutta4)(f, x, dt)
     return nothing
 end
 
-export StateEmbedding, StateTreeEmbedding, level_global_indices, parent_global_index
+export StateEmbedding, StateTreeEmbedding, level_global_indices, parent_global_index, get_markov_states
 
 abstract type AbstractEmbedding end
 
@@ -93,4 +93,17 @@ child_global_index(new_index, global_parent_index) = 2 * global_parent_index + n
 # global_indices per level
 level_global_indices(level) = 2^(level-1):2^level-1
 parent_global_index(child_index) = div(child_index, 2) # both global
+
+# markov states from centers list 
+function get_markov_states(centers_list::Vector{Vector{Vector{Float64}}}, level)
+    markov_states = Vector{Float64}[]
+    indices = level_global_indices(level)
+    for index in indices
+        push!(markov_states, centers_list[index][1])
+        push!(markov_states, centers_list[index][2])
+    end
+    return markov_states
+end
+get_markov_states(embedding::StateTreeEmbedding, level) = get_markov_states(embedding.markov_states, level)
+
 end # module AttractorConvergence

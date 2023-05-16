@@ -19,7 +19,7 @@ level_global_indices(level) = 2^(level-1):2^level-1
 ##
 levels = 10
 parent_views = []
-centers_list = []
+centers_list = Vector{Vector{Float64}}[]
 push!(parent_views, X)
 ## Level 1
 centers, children = split(X)
