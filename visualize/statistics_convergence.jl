@@ -39,10 +39,13 @@ observable_lists = Vector{Float64}[]
 probabilities_list = Vector{Float64}[]
 observable_values = Float64[]
 sparsity_list = Float64[]
+eigenvalues_list = Vector{ComplexF64}[]
 for level in ProgressBar(level_list)
     markov_states = get_markov_states(centers_list, level)
     coarse_grained_markov_chain = div.(markov_chain .- 1, 2^(10 - level)) .+ 1
     Q = mean(BayesianGenerator(coarse_grained_markov_chain; dt=Δt))
+    Λ, V = eigen(Q)
+    push!(eigenvalues_list, Λ)
     sQ = sparsify(Q)
     sparsity = length(sQ.nzval) / length(sQ)
     push!(sparsity_list, sparsity)
@@ -90,3 +93,14 @@ for level in 1:10
     relative_error = [abs(ensemble_moments[i] - temporal_moments[i]) / temporal_moments[i] * 100 for i in 1:num_moments]
     push!(relative_error_list, relative_error)
 end
+
+##
+fig = Figure()
+for i in 2:10
+    ii = (i - 2) ÷ 3 + 1
+    jj = (i - 2) % 3 + 1
+    ax = Axis(fig[ii, jj]; title="ensemble level $i")
+    eigenlist= eigenvalues_list[i]
+    scatter!(ax, real.(eigenlist), imag.(eigenlist))
+end
+display(fig)
