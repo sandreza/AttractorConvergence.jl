@@ -104,3 +104,17 @@ for i in 2:10
     scatter!(ax, real.(eigenlist), imag.(eigenlist))
 end
 display(fig)
+
+##
+fig = Figure()
+for i in 1:3
+    for j in 1:3
+        ax = Axis(fig[j, i]; title="ensemble level $(3 + i + j) and $(4 + i + j)")
+        eigenlist = eigenvalues_list[3+i+j]
+        scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:red, 0.5), label="level $(3 + i + j)")
+        eigenlist = eigenvalues_list[4+i+j]
+        scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:blue, 0.5), label="level $(4 + i + j)")
+        axislegend(ax)
+    end
+end
+display(fig)
