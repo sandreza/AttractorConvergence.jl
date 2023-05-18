@@ -36,3 +36,15 @@ for level in ProgressBar(2:levels)
     end
 end
 @info "done with k-means"
+##
+# save the centers 
+centers_matrix = zeros(length(centers_list[1][1]), length(centers_list[1]), length(centers_list))
+for i in eachindex(centers_list)
+    centers_matrix[:, :, i] = hcat(centers_list[i]...)
+end
+##
+@info "saving centers list data"
+hfile = h5open(pwd() * "/data/kmeans.hdf5", "w")
+hfile["centers"] = centers_matrix
+hfile["levels"] = levels
+close(hfile)

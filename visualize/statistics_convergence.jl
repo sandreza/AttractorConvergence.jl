@@ -1,6 +1,7 @@
 using GLMakie, AttractorConvergence, SparseArrays
 import MarkovChainHammer.Utils: histogram
 using MarkovChainHammer.BayesianMatrix
+using MarkovChainHammer.TransitionMatrix: entropy
 
 @info "loading data"
 hfile = h5open(pwd() * "/data/embedding.hdf5", "r")
@@ -12,6 +13,12 @@ hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
 timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 close(hfile)
+# read centers list from file 
+hfile = h5open(pwd() * "/data/kmeans.hdf5", "r")
+centers_matrix = read(hfile["centers"])
+levels = read(hfile["levels"])
+close(hfile)
+centers_list = [[centers_matrix[:, 1, i], centers_matrix[:, 2, i]] for i in 1:size(centers_matrix)[3]]
 ##
 embedding = StateTreeEmbedding(centers_list, levels)
 ##
@@ -27,13 +34,12 @@ end
 function sparsify(Q; threshold = eps(10^6.0))
     Q[abs.(Q) .< threshold] .= 0
     return sparse(Q)
-end
-# 1 + 
+end 
 ##
 # Need consistency between centers and markov_chain
 observable(state) = state[3]
 gₜ = [observable(timeseries[:, i]) for i in 1:size(timeseries)[2]]
-level_list = 1:10
+level_list = 1:levels
 time_moment = mean(gₜ)
 observable_lists = Vector{Float64}[]
 probabilities_list = Vector{Float64}[]
@@ -43,7 +49,10 @@ eigenvalues_list = Vector{ComplexF64}[]
 for level in ProgressBar(level_list)
     markov_states = get_markov_states(centers_list, level)
     coarse_grained_markov_chain = div.(markov_chain .- 1, 2^(10 - level)) .+ 1
-    Q = mean(BayesianGenerator(coarse_grained_markov_chain; dt=Δt))
+    coarse_grained_markov_chain_2 = div.(s_markov_chain .- 1, 2^(10 - level)) .+ 1
+    Q1 = BayesianGenerator(coarse_grained_markov_chain; dt=Δt)
+    Q2 = BayesianGenerator(coarse_grained_markov_chain_2, Q1.posterior; dt=Δt)
+    Q = mean(Q2)
     Λ, V = eigen(Q)
     push!(eigenvalues_list, Λ)
     sQ = sparsify(Q)
@@ -63,7 +72,7 @@ labelsize = 40
 options = (; xlabel="Time [days]", ylabel="Probability", titlesize=labelsize, ylabelsize=labelsize, xlabelsize=labelsize, xticklabelsize=labelsize, yticklabelsize=labelsize)
 custom_range = extrema(gₜ)
 values_t, probabilities_t = histogram(gₜ; bins=20, custom_range=custom_range)
-prob_lim = extrema(probabilities)
+prob_lim = extrema(probabilities_t)
 prob_lim = (0, 0.2)
 barplot!(ax1, values_t, probabilities_t; color=(:blue, 0.5), gap=0.0, options...)
 ylims!(ax1, prob_lim)

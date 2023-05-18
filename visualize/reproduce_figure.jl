@@ -10,7 +10,7 @@ s_markov_chain = read(hfile["symmetrized markov chain"])
 Δt = read(hfile["dt"])
 close(hfile)
 hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
-timeseries = read(hfile["timeseries"])
+m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 close(hfile)
 

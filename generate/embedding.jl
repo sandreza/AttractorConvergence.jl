@@ -4,9 +4,14 @@ timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 Δt = read(hfile["dt"])
 close(hfile)
-# ideally need to read centers_list from file, but right now it's not saved and the format isn't gonna work for saving 
-
+# read centers list from file 
+hfile = h5open(pwd() * "/data/kmeans.hdf5", "r")
+centers_matrix= read(hfile["centers"])
+levels = read(hfile["levels"])
+close(hfile)
+centers_list = [[centers_matrix[:,1, i], centers_matrix[:,2, i]] for i in 1:size(centers_matrix)[3]]
 # constructing embedding with 2^levels number of states
+# note that we can also choose a number less than levels
 embedding = StateTreeEmbedding(centers_list, levels)
 ##
 @info "computing markov embedding"
@@ -31,6 +36,6 @@ end
 @info "saving"
 hfile = h5open(pwd() * "/data/embedding.hdf5", "w")
 hfile["markov_chain"] = markov_chain
-hfile["symmetrized markov chain"] = s_timeseries
+hfile["symmetrized markov chain"] = s_markov_chain
 hfile["dt"] = Δt
 close(hfile)
