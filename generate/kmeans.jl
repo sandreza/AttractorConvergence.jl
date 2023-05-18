@@ -17,7 +17,7 @@ function split(X)
 end
 level_global_indices(level) = 2^(level-1):2^level-1
 ##
-levels = 10
+levels = 12
 parent_views = []
 centers_list = Vector{Vector{Float64}}[]
 push!(parent_views, X)

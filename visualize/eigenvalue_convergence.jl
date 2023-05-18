@@ -48,8 +48,8 @@ sparsity_list = Float64[]
 eigenvalues_list = Vector{ComplexF64}[]
 for level in ProgressBar(level_list)
     markov_states = get_markov_states(centers_list, level)
-    coarse_grained_markov_chain = div.(markov_chain .- 1, 2^(10 - level)) .+ 1
-    coarse_grained_markov_chain_2 = div.(s_markov_chain .- 1, 2^(10 - level)) .+ 1
+    coarse_grained_markov_chain = div.(markov_chain .- 1, 2^(levels - level)) .+ 1
+    coarse_grained_markov_chain_2 = div.(s_markov_chain .- 1, 2^(levels - level)) .+ 1
     Q1 = BayesianGenerator(coarse_grained_markov_chain; dt=Δt)
     Q2 = BayesianGenerator(coarse_grained_markov_chain_2, Q1.posterior; dt=Δt)
     Q = mean(Q2)
@@ -66,64 +66,16 @@ for level in ProgressBar(level_list)
     push!(observable_values, observable_value)
 end
 ##
-fig = Figure(resolution=(1500, 1500))
-ax1 = Axis(fig[1, 1]; title="timeseries")
-labelsize = 40
-options = (; xlabel="Time [days]", ylabel="Probability", titlesize=labelsize, ylabelsize=labelsize, xlabelsize=labelsize, xticklabelsize=labelsize, yticklabelsize=labelsize)
-custom_range = extrema(gₜ)
-values_t, probabilities_t = histogram(gₜ; bins=20, custom_range=custom_range)
-prob_lim = extrema(probabilities_t)
-prob_lim = (0, 0.2)
-barplot!(ax1, values_t, probabilities_t; color=(:blue, 0.5), gap=0.0, options...)
-ylims!(ax1, prob_lim)
-
-for level in 3:10
-    ii = (level - 2) ÷ 3 + 1
-    jj = (level - 2) % 3 + 1
-    level = 13 - level
-    gₑ = observable_lists[level]
-    p = probabilities_list[level]
-    ax2 = Axis(fig[ii, jj]; title="ensemble level $level")
-    values, probabilities = histogram(gₑ; bins=20, normalization=p, custom_range=custom_range)
-    barplot!(ax2, values, probabilities; color=(:red, 0.5), gap=0.0, options...)
-    ylims!(ax2, prob_lim)
-end
-display(fig)
-
-##
-moment_functions = [t -> t^i for i in 1:10]
-num_moments = 6
-temporal_moments = [mean(moment_functions[i].(gₜ)) for i in 1:num_moments]
-ensemble_moment_list = Vector{Float64}[]
-relative_error_list = Vector{Float64}[]
-for level in 1:10
-    ensemble_moments = [sum(moment_functions[i].(observable_lists[level]) .* probabilities_list[level]) for i in 1:num_moments]
-    push!(ensemble_moment_list, ensemble_moments)
-    relative_error = [abs(ensemble_moments[i] - temporal_moments[i]) / temporal_moments[i] * 100 for i in 1:num_moments]
-    push!(relative_error_list, relative_error)
-end
-
-##
-fig = Figure()
-for i in 2:10
-    ii = (i - 2) ÷ 3 + 1
-    jj = (i - 2) % 3 + 1
-    ax = Axis(fig[ii, jj]; title="ensemble level $i")
-    eigenlist = eigenvalues_list[i]
-    scatter!(ax, real.(eigenlist), imag.(eigenlist))
-end
-display(fig)
-
-##
 fig = Figure(resolution = (2000,2000))
-for i in 1:3
-    for j in 1:3
-        ax = Axis(fig[j, i]; title="ensemble level $(3 + i + j) and $(4 + i + j)", xlabel="real", ylabel="imaginary")
-        eigenlist = eigenvalues_list[3+i+j]
-        scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:red, 0.5), label="level $(3 + i + j)")
-        eigenlist = eigenvalues_list[4+i+j]
-        scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:blue, 0.5), label="level $(4 + i + j)")
-        axislegend(ax)
-    end
+for ii in 1:9
+    i = div(ii-1, 3) + 1
+    j = mod(ii-1, 3) + 1
+    start_value = ii
+    ax = Axis(fig[j, i]; title="ensemble level $(start_value) and $(start_value + 1)", xlabel="real", ylabel="imaginary")
+    eigenlist = eigenvalues_list[start_value]
+    scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:red, 0.5), label="level $(start_value)")
+    eigenlist = eigenvalues_list[start_value+1]
+    scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:blue, 0.5), label="level $(start_value + 1)")
+    axislegend(ax)
 end
 display(fig)
