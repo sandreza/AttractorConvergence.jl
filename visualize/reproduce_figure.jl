@@ -1,4 +1,5 @@
-using GLMakie, MarkovChainHammer.BayesianMatrix, HDF5
+using GLMakie, MarkovChainHammer.BayesianMatrix, HDF5, Statistics, ProgressBars
+using LinearAlgebra
 
 figure_directory = pwd() * "/figures"
 isdir(pwd() * "/figures") ? nothing : mkdir(pwd() * "/figures")
@@ -19,6 +20,16 @@ figure_number = 1
 include("tree_refinement.jl")
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
 println("done with ", figure_number)
-
 figure_number += 1
+
+include("statistics_convergence.jl")
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+println("done with ", figure_number)
+figure_number += 1
+
+include("eigenvalue_convergence.jl")
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+println("done with ", figure_number)
+figure_number += 1
+
 nothing
