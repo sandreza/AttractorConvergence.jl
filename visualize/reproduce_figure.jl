@@ -40,4 +40,10 @@ save(figure_directory * "/Figure" * string(figure_number) * ".png", fig_eig)
 println("done with ", figure_number)
 figure_number += 1
 
+##
+include("koopman_modes.jl")
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+println("done with ", figure_number)
+figure_number += 1
+
 nothing
