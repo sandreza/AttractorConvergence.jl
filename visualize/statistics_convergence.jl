@@ -4,28 +4,12 @@ using MarkovChainHammer.BayesianMatrix
 using MarkovChainHammer.TransitionMatrix: entropy
 using MarkovChainHammer.TransitionMatrix: steady_state
 
-@info "loading data"
-hfile = h5open(pwd() * "/data/embedding.hdf5", "r")
-markov_chain = read(hfile["markov_chain"])
-s_markov_chain = read(hfile["symmetrized markov chain"])
-Δt = read(hfile["dt"])
-close(hfile)
-hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
-timeseries = read(hfile["timeseries"])
-s_timeseries = read(hfile["symmetrized timeseries"])
-close(hfile)
-# read centers list from file 
-hfile = h5open(pwd() * "/data/kmeans.hdf5", "r")
-centers_matrix = read(hfile["centers"])
-levels = read(hfile["levels"])
-close(hfile)
-centers_list = [[centers_matrix[:, 1, i], centers_matrix[:, 2, i]] for i in 1:size(centers_matrix)[3]]
 ##
 embedding = StateTreeEmbedding(centers_list, levels)
 ##
 # Need consistency between centers and markov_chain
 observable(state) = state[3]
-gₜ = [observable(timeseries[:, i]) for i in 1:size(timeseries)[2]]
+gₜ = [observable(m_timeseries[:, i]) for i in 1:size(m_timeseries)[2]]
 level_list = 1:levels
 time_moment = mean(gₜ)
 observable_lists = Vector{Float64}[]

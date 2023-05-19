@@ -1,4 +1,4 @@
-
+levels = round(Int, log2(maximum(union(markov_chain))))
 level_list = 1:levels
 eigenvalues_list = Vector{ComplexF64}[]
 right_eigenvectors_list = Array{ComplexF64}[]
