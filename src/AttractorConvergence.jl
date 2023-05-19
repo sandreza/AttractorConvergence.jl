@@ -1,6 +1,6 @@
 module AttractorConvergence
 
-using LinearAlgebra
+using LinearAlgebra, SparseArrays
 using ProgressBars
 
 export lorenz!, lorenz
@@ -59,6 +59,7 @@ function (step::RungeKutta4)(f, x, dt)
 end
 
 export StateEmbedding, StateTreeEmbedding, level_global_indices, parent_global_index, get_markov_states
+export sparsify
 
 abstract type AbstractEmbedding end
 
@@ -105,5 +106,10 @@ function get_markov_states(centers_list::Vector{Vector{Vector{Float64}}}, level)
     return markov_states
 end
 get_markov_states(embedding::StateTreeEmbedding, level) = get_markov_states(embedding.markov_states, level)
+
+function sparsify(Q; threshold=eps(10^6.0))
+    Q[abs.(Q).<threshold] .= 0
+    return sparse(Q)
+end
 
 end # module AttractorConvergence
