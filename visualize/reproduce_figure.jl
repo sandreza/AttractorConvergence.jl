@@ -20,6 +20,8 @@ centers_matrix = read(hfile["centers"])
 levels = read(hfile["levels"])
 close(hfile)
 centers_list = [[centers_matrix[:, 1, i], centers_matrix[:, 2, i]] for i in 1:size(centers_matrix)[3]]
+# decide how many points on scatter to plot 
+inds = round.(Int, range(1, length=2000000, stop=size(m_timeseries)[2]))
 ##
 @info "computing eigendecomposition"
 include("compute_eigenvalue_decomposition.jl") # Perhaps save the data somewhere? Or the first n-eigenvalues / eigenvectors and so forth?

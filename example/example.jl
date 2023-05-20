@@ -157,7 +157,6 @@ for i in 1:4
 end
 display(fig)
 ##
-inds = 1:5:10^7
 fig2 = Figure(resolution = (2000,2000))
 set_theme!(backgroundcolor=:black)
 for i in 1:9
