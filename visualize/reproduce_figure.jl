@@ -57,4 +57,14 @@ save(figure_directory * "/Figure" * string(figure_number) * ".png", fig2)
 println("done with ", figure_number)
 figure_number += 1
 
+##
+include("data_resolution_tradeoff.jl")
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+println("done with ", figure_number)
+figure_number += 1
+
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig2)
+println("done with ", figure_number)
+figure_number += 1
+
 nothing
