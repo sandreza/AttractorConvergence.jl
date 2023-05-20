@@ -59,3 +59,45 @@ for level in 1:levels
     relative_error = [abs(ensemble_moments[i] - temporal_moments[i]) / temporal_moments[i] * 100 for i in 1:num_moments]
     push!(relative_error_list, relative_error)
 end
+
+##
+observables_list = [t -> t[3], t -> t[1] * t[2], t -> t[1]^2, t -> t[2]^2, t -> t[1] * t[2] * t[3], t -> t[3] * log(t[3])]
+observables_list_names = ["z", "xy", "x²", "y²", "xyz", "z log(z)"]
+observables_list_colors = [:blue, :red, :green, :orange, :purple, :yellow]
+
+observable_lists = Vector{Float64}[]
+observable_values = Float64[]
+observable_values_timeaverage = Float64[]
+
+level_list = 1:levels
+
+for observable in ProgressBar(observables_list)
+    g1 = [observable(m_timeseries[:, i]) for i in 1:size(m_timeseries)[2]]
+    g2 = [observable(s_timeseries[:, i]) for i in 1:size(s_timeseries)[2]]
+    time_moment = mean(hcat(g1,g2))
+    push!(observable_values_timeaverage, time_moment)
+    for level in ProgressBar(level_list)
+        markov_states = get_markov_states(centers_list, level)
+        gₑ = observable.(markov_states)
+        p = probabilities_list[level]
+        push!(observable_lists, gₑ)
+        observable_value = sum(gₑ .* p)
+        push!(observable_values, observable_value)
+    end
+end
+##
+relative_error_matrix = zeros(levels, length(observables_list))
+for i in eachindex(observables_list)
+    local_inds = levels*(i - 1)+1:levels*i
+    observable_value = observable_values[local_inds]
+    relative_error_matrix[:, i] .= abs.(observable_value .- observable_values_timeaverage[i]) ./ observable_values_timeaverage[i] 
+end
+##
+fig2 = Figure(resolution = (500, 500))
+ax = Axis(fig2[1, 1]; title="Convergence", xlabel = "log10(partitions)", ylabel = "log10(relative error)")
+for i in eachindex(observables_list)
+    scatter!(ax, log10.(2 .^ level_list), log10.(relative_error_matrix[:, i]); color=observables_list_colors[i], label=observables_list_names[i])
+end
+lines!(ax, log10.(2 .^ level_list), -log10.(2 .^ level_list) .+ 0, color=:black, linestyle=:dash, linewidth=3, label="slope -1")
+axislegend(ax)
+display(fig2)
