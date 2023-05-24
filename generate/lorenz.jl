@@ -35,7 +35,8 @@ function distance_matrix(data)
     end
     return Symmetric(d_mat)
 end
-timesteps = 4*10^7
+##
+timesteps = 4*10^6
 timeseries, Δt = lorenz_data(timesteps=timesteps, Δt=0.0025)
 s_timeseries = lorenz_symmetry(timeseries)
 joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose

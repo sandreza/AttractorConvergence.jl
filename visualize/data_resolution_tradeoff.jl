@@ -12,7 +12,8 @@ for resolution_skip in ProgressBar(resolution_skip_list)
         coarse_grained_markov_chain_2 = div.(s_markov_chain .- 1, 2^(levels - level)) .+ 1
         Δt_c = Δt * resolution_skip
         inds_c = 1:resolution_skip:timestep_end
-        Q1 = BayesianGenerator(coarse_grained_markov_chain[inds_c]; dt=Δt_c)
+        prior = uninformative_prior(2^level)
+        Q1 = BayesianGenerator(coarse_grained_markov_chain[inds_c], prior; dt=Δt_c)
         Q2 = BayesianGenerator(coarse_grained_markov_chain_2[inds_c], Q1.posterior; dt=Δt_c)
         Q = mean(Q2)
         Λ, V = eigen(Q)
@@ -35,7 +36,7 @@ for ii in 1:9
     ax = Axis(fig[j, i]; title="Δt⁻¹ =  $(round(Int, 1/Δt_c)), T = $(Tfinal), Partitions = $(2^9)", xlabel="real", ylabel="imaginary")
     eigenlist = eigenvalues_resolution_list[ii]
     scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:red, 0.5), label="level $(start_value)")
-    ylims!(ax, (-60, 60))
+    ylims!(ax, (-70, 70))
     xlims!(ax, (-210, 10))
     # axislegend(ax)
 end
@@ -77,7 +78,7 @@ for ii in 1:9
     eigenlist = eigenvalues_resolution_list[ii]
     scatter!(ax, real.(eigenlist), imag.(eigenlist), color=(:blue, 0.5), label="level $(start_value)")
     ylims!(ax, (-30, 30))
-    xlims!(ax, (-60, 10))
+    xlims!(ax, (-70, 10))
     # axislegend(ax)
 end
 display(fig2)

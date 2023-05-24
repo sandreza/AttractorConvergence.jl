@@ -19,7 +19,7 @@ end
 display(fig)
 
 ##
-level = 10
+level = 11
 koopman_mode = real.(left_eigenvectors_list[level][end-3, :])
 koopman_mode = koopman_mode ./ sign(koopman_mode[end])
 markov_indices = div.(markov_chain[inds] .+ 2^levels .- 1, 2^(levels - level)) .- minimum(div.(markov_chain[inds] .+ 2^levels .- 1, 2^(levels - level))) .+ 1
