@@ -5,7 +5,9 @@ s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 @info "starting k-means"
-X = joined_timeseries[:, 1:1:end]
+maxlength = minimum([10^7, size(joined_timeseries)[2] ])
+inds = round.(Int,range(1, size(joined_timeseries)[2] + 1, length =maxlength+1))[1:end-1]
+X = joined_timeseries[:, inds]
 ##
 function split(X)
     numstates = 2

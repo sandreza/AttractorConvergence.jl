@@ -1,9 +1,9 @@
 module AttractorConvergence
 
-using LinearAlgebra, SparseArrays
+using LinearAlgebra, SparseArrays, Random, Statistics
 using ProgressBars
 
-export lorenz!, lorenz
+export lorenz!, lorenz, lorenz_data, lorenz_symmetry
 # generate data
 function lorenz!(ṡ, s)
     ṡ[1] = 10.0 * (s[2] - s[1])
@@ -17,6 +17,43 @@ function lorenz(x, ρ, σ, β)
     x2 = x[2]
     x3 = x[3]
     return [σ * (x2 - x1), x1 * (ρ - x3) - x2, x1 * x2 - β * x3]
+end
+
+function lorenz_data(; timesteps=10^7, Δt=0.005, ϵ=0.0, ρ=t -> 28.0, initial_condition=[1.4237717232359446, 1.778970017190979, 16.738782836244038])
+    rhs(x, t) = lorenz(x, ρ(t), 10.0, 8.0 / 3.0)
+    x_f = zeros(3, timesteps)
+    x_f[:, 1] .= initial_condition
+    evolve! = RungeKutta4(3)
+    for i in ProgressBar(2:timesteps)
+        xOld = x_f[:, i-1]
+        evolve!(rhs, xOld, Δt)
+        if ϵ > 0.0
+            𝒩 = randn(3)
+            @inbounds @. x_f[:, i] = evolve!.xⁿ⁺¹ + ϵ * sqrt(Δt) * 𝒩
+        else
+            @inbounds @. x_f[:, i] = evolve!.xⁿ⁺¹
+        end
+    end
+    return x_f, Δt
+end
+function lorenz_symmetry(timeseries)
+    symmetrized_timeseries = zeros(size(timeseries))
+    for i in ProgressBar(1:size(timeseries)[2])
+        symmetrized_timeseries[1, i] = -timeseries[1, i]
+        symmetrized_timeseries[2, i] = -timeseries[2, i]
+        symmetrized_timeseries[3, i] = timeseries[3, i]
+    end
+    return symmetrized_timeseries
+end
+
+function distance_matrix(data)
+    d_mat = zeros(size(data)[2], size(data)[2])
+    for j in ProgressBar(1:size(data)[2])
+        Threads.@threads for i in 1:j-1
+            @inbounds d_mat[i, j] = norm(data[:, i] - data[:, j])
+        end
+    end
+    return Symmetric(d_mat)
 end
 
 export RungeKutta4, rk4

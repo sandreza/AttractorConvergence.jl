@@ -2,8 +2,8 @@
 
 level = 9
 eigenvalues_resolution_list = Vector{ComplexF64}[]
-resolution_skip_list = [1, 2, 4]
-timestep_end_list = div.(length(markov_chain), [1, 100, 1000])
+resolution_skip_list = [1, 10, 100]
+timestep_end_list = div.(length(markov_chain), [1, 10, 100])
 resolution_time_end_pair = []
 for resolution_skip in ProgressBar(resolution_skip_list)
     for timestep_end in ProgressBar(timestep_end_list)
@@ -43,10 +43,8 @@ end
 display(fig)
 
 ##
-level = 6
+level = 5
 eigenvalues_resolution_list = Vector{ComplexF64}[]
-resolution_skip_list = [1, 2, 4]
-timestep_end_list = div.(length(markov_chain), [1, 100, 1000])
 resolution_time_end_pair = []
 for resolution_skip in ProgressBar(resolution_skip_list)
     for timestep_end in ProgressBar(timestep_end_list)
