@@ -67,7 +67,7 @@ save(figure_directory * "/Figure" * string(figure_number) * ".png", fig2)
 println("done with ", figure_number)
 figure_number += 1
 =#
-
+include("koopman_modes.jl")
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig3)
 println("done with ", figure_number)
 figure_number += 1
@@ -79,6 +79,12 @@ println("done with ", figure_number)
 figure_number += 1
 
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig2)
+println("done with ", figure_number)
+figure_number += 1
+
+##
+include("partition_comparison.jl")
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
 println("done with ", figure_number)
 figure_number += 1
 
