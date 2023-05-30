@@ -23,16 +23,23 @@ end
 ##
 # generate kmeans and save
 if isfile(pwd() * "/data/kmeans.hdf5") #unideal because just checking for one
-    @info "lorenz data already exists. skipping data generation"
+    @info "kmeans data already exists. skipping data generation"
 else
     include("kmeans.jl")
 end
 ##
 # create embedding 
 if isfile(pwd() * "/data/embedding.hdf5") #unideal because just checking for one
-    @info "lorenz data already exists. skipping data generation"
+    @info "embedding data already exists. skipping data generation"
 else
     include("embedding.jl")
+end
+##
+# create structured embedding 
+if isfile(pwd() * "/data/structured_embedding.hdf5") #unideal because just checking for one
+    @info "structured embedding data already exists. skipping data generation"
+else
+    include("structured_embedding.jl")
 end
 
 ##

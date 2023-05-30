@@ -1,8 +1,8 @@
 
 hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
-timeseries = read(hfile["timeseries"])
+m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
-joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose
+joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 @info "starting k-means"
 maxlength = minimum([10^7, size(joined_timeseries)[2] ])

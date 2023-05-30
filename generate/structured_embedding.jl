@@ -1,3 +1,7 @@
+hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
+m_timeseries = read(hfile["timeseries"])
+close(hfile)
+
 @info "ab periodic orbit partition"
 T = 1.5586522107162 # period
 ic = [-1.3763610682134e1, -1.9578751942452e1, 27.0] # initial condition from Viswanath
