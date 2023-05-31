@@ -38,8 +38,9 @@ function even_split(data, partitions; max_iters = 10000, tolerance = 1.5)
     centers, children = linear_split(data, partitions; max_iters)
     children = buildup.(children)
 
-    max_number = size(data, 2) ÷ partitions * tolerance
-    min_number = size(data, 2) ÷ partitions / tolerance
+    max_number = (size(data, 2) ÷ partitions) * tolerance
+    min_number = (size(data, 2) ÷ partitions) / tolerance
+
     add_or_remove = zeros(Int, partitions)
     numelem       = [length(children[i]) for i in 1:partitions]
     for i in 1:partitions
