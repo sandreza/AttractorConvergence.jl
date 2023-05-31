@@ -98,55 +98,12 @@ end
 export StateEmbedding, StateTreeEmbedding, level_global_indices, parent_global_index, get_markov_states
 export sparsify
 
-abstract type AbstractEmbedding end
-
-struct StateEmbedding{S} <: AbstractEmbedding
-    markov_states::S
-end
-function (embedding::StateEmbedding)(current_state)
-    argmin([norm(current_state - markov_state) for markov_state in embedding.markov_states])
-end
-
-struct StateTreeEmbedding{S, T} <: AbstractEmbedding
-    markov_states::S
-    levels::T
-end
-function (embedding::StateTreeEmbedding)(current_state)
-    global_index = 1 
-    for level in 1:embedding.levels
-        new_index = argmin([norm(current_state - markov_state) for markov_state in embedding.markov_states[global_index]])
-        global_index = child_global_index(new_index, global_index)
-    end
-    return local_index(global_index, embedding.levels)
-end
-
-# assumes binary tree
-local_index(global_index, levels) = global_index - 2^levels + 1 # markov index from [1, 2^levels]
-# parent local index is markov_index(global_index, levels-1)
-# child local index is 2*markov_index(global_index, levels-1) + new_index - 1
-# global index is 2^levels + 1 + child local index
-child_global_index(new_index, global_parent_index, level) = (2 * (local_index(global_parent_index, level - 1)-1) + new_index - 1) + 2^(level) 
-# simplified:
-child_global_index(new_index, global_parent_index) = 2 * global_parent_index + new_index - 1 
-# global_indices per level
-level_global_indices(level) = 2^(level-1):2^level-1
-parent_global_index(child_index) = div(child_index, 2) # both global
-
-# markov states from centers list 
-function get_markov_states(centers_list::Vector{Vector{Vector{Float64}}}, level)
-    markov_states = Vector{Float64}[]
-    indices = level_global_indices(level)
-    for index in indices
-        push!(markov_states, centers_list[index][1])
-        push!(markov_states, centers_list[index][2])
-    end
-    return markov_states
-end
-get_markov_states(embedding::StateTreeEmbedding, level) = get_markov_states(embedding.markov_states, level)
-
 function sparsify(Q; threshold=eps(10^6.0))
     Q[abs.(Q).<threshold] .= 0
     return sparse(Q)
 end
+
+include("tree_structure.jl")
+include("tree_embedding.jl")
 
 end # module AttractorConvergence
