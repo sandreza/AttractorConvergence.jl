@@ -56,3 +56,11 @@ function flatten(data::Vector{Vector{FT}}) where FT
     end
     return newdata
 end
+
+function buildup(data::AbstractArray{FT, 2}) where FT
+    newdata = Array[]
+    for i in 1:size(data, 2)
+        push!(newdata, data[:, i])
+    end
+    return newdata
+end

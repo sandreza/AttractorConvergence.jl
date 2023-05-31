@@ -1,5 +1,6 @@
 using ParallelKMeans
 using ParallelKMeans: kmeans
+using Statistics: mean
 
 abstract type AbstractEmbedding end
 
@@ -27,6 +28,62 @@ function (embedding::PowerTreeEmbedding)(current_state)
         index  = search[index]
     end
     return index
+end
+
+euclidean_distance(x, y) = sqrt(sum((x .- y).^2))
+maxk(a, k) = partialsortperm(a, 1:k, rev=true)
+
+function even_split(data, partitions; max_iters = 10000, tolerance = 1.5)
+
+    centers, children = linear_split(data, partitions; max_iters)
+    children = buildup.(children)
+
+    max_number = size(data, 2) ÷ partitions * tolerance
+    min_number = size(data, 2) ÷ partitions / tolerance
+    add_or_remove = zeros(Int, partitions)
+    numelem       = [length(children[i]) for i in 1:partitions]
+    for i in 1:partitions
+        add_or_remove[i] = numelem[i] > max_number ? 2 : numelem[i] < min_number ? 1 : 0
+    end
+
+    if sum(add_or_remove) == 0 
+        children = children .|> Vector{Vector{Float64}}
+        children = flatten.(children)
+    
+        for i in 1:partitions
+            children[i] = Array(children[i]')
+        end
+    
+        return centers, children
+    end
+
+    maxidx = argmax(add_or_remove)
+    
+    distance = zeros(length(children[maxidx]))
+    for i in eachindex(distance)
+        distance[i] = euclidean_distance(children[maxidx][i], centers[:, maxidx])
+    end
+
+    toremove = numelem[maxidx] - minimum(numelem)
+    rmidx    = maxk(distance, toremove)
+    rmelem   = children[maxidx][rmidx]
+    deleteat!(children[maxidx], sort(rmidx))
+    
+    for elem in rmelem
+        ndist = [euclidean_distance(elem, centers[:, i]) for i in 1:partitions]
+        perm  = sortperm(ndist)
+        push!(children[perm[2]], elem)
+    end
+
+    centers  = Array(flatten(mean.(children))')
+    children = children .|> Vector{Vector{Float64}}
+    children = flatten.(children)
+
+    for i in 1:partitions
+        children[i] = Array(children[i]')
+    end
+
+    return centers, children
 end
 
 function linear_split(data, partitions; max_iters = 10000)
@@ -72,30 +129,3 @@ end
 infer_datasize(a::Array{T, N}) where {T, N} = size(a, N)
 infer_datasize(a::Array{T, 1}) where T      = length(a)
 
-splittableparents(c::Matrix) = length(c)
-
-function ProbabilityTreeEmbedding(data; statesnumber = 100, reduction = 0.9, partitions = 2, split_function = linear_split)
-
-    datasize = infer_datasize(data) 
-    parents  = [data]
-    prob     = datasize / statesnumber * reduction
-    states   = []
-    conn     = []
-    bsize    = []
-
-    splittable = [1]
-    
-    while length(states) <= statesnumber
-        for parentindex in splittable
-            centers, children = split_function(parents[parentidx], partitions)
-            splittable = splittable(centers)
-           
-        end
-
-
-    end
-
-    treestates = GeneralizedTree{L}(states, conn, bsize)
-
-    return ProbabilityTreeEmbedding(states)
-end
