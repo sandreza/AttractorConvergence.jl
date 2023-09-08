@@ -58,7 +58,7 @@ X = joined_timeseries[:,1:1:end]
 lev = 5
 par = 4
 
-# constructing embedding with 2^levels number of states
+# constructing embedding with partitions^levels number of states
 embedding = PowerTreeEmbedding(X; levels = lev, partitions = par, split_function = AttractorConvergence.even_split)
 
 ##
