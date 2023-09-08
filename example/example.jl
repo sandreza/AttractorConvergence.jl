@@ -44,7 +44,7 @@ function distance_matrix(data)
     end
     return Symmetric(d_mat)
 end
-timesteps = 10^6
+timesteps = 10^7
 timeseries, Δt = lorenz_data(timesteps=timesteps, Δt=0.005)
 s_timeseries = lorenz_symmetry(timeseries)
 joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose
@@ -55,11 +55,11 @@ X = joined_timeseries[:,1:1:end]
 ##
 @info "done with k-means"
 
-lev = 3
-par = 10
+lev = 5
+par = 4
 
 # constructing embedding with 2^levels number of states
-embedding = PowerTreeEmbedding(X; levels = lev, partitions = par)
+embedding = PowerTreeEmbedding(X; levels = lev, partitions = par, split_function = AttractorConvergence.even_split)
 
 ##
 @info "computing markov embedding"
