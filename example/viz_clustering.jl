@@ -40,8 +40,3 @@ graphplot!(ax12, g, layout=layout, node_size=0.0, edge_width=1.0)
 hidedecorations!(ax11)
 hidespines!(ax11);
 display(fig)
-##
-layout = Spectral(dim=3)
-[Q[i, i] = 0 for i in 1:size(Q)[1]]
-g = DiGraph(Q)
-f, ax, p = graphplot(g, layout=layout, node_size=0.0, edge_width=1.0)
