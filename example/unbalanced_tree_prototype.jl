@@ -67,6 +67,8 @@ function unstructured_tree2(timeseries, p_min; threshold = 2)
     C = Dict()
     P3 = Dict()
     P4 = Dict()
+    P5 = Dict()
+    CC = Dict()
     leaf_index = 1
     global_index = 1
     while (length(W) > 0)
@@ -82,6 +84,7 @@ function unstructured_tree2(timeseries, p_min; threshold = 2)
             [push!(P2, (p1, global_index + i, length(ind) / n)) for (i, ind) in enumerate(inds)]
             Ptmp2 = Int64[]
             [push!(Ptmp2, global_index + i) for (i, ind) in enumerate(inds)]
+            [CC[global_index + i] = centers[i] for i in eachindex(inds)]
             P3[p1] = Ptmp2
             global_index += length(inds)
             push!(H, [inds...])
@@ -90,10 +93,11 @@ function unstructured_tree2(timeseries, p_min; threshold = 2)
             push!(H, [[]])
             P3[p1] = NaN
             P4[p1] = leaf_index
+            P5[leaf_index] = p1
             leaf_index += 1
         end
     end
-    return F, G, H, P2, P3, P4, C
+    return F, G, H, P2, P3, P4, C, CC, P5
 end
 
 function children_from_PI(PI, parent_index)
@@ -120,15 +124,14 @@ end
 # write embedding function 
 # compare with power_tree.jl
 ##
-F, G, H, PI, P3, P4, C = unstructured_tree2(timeseries, 0.000175);
-node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
-nn = maximum([PI[i][2] for i in eachindex(PI)])
+F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(timeseries, 0.000175);
+node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI);
+nn = maximum([PI[i][2] for i in eachindex(PI)]);
 node_labels = ones(nn)
-probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)]
+probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)];
 node_labels = collect(1:nn)
-leaf_inds = leaf_nodes_from_PI(PI)
-leaf_probabilities = [probabilities[leaf-1] for leaf in leaf_inds]
-se = scaled_entropy([probabilities[leaf-1] for leaf in leaf_inds])
+c =  [length(f)/n for f in F]
+se = scaled_entropy(leaf_probabilities)
 pr = maximum(leaf_probabilities) / minimum(leaf_probabilities)
 println("scaled entropy $se and ratio $pr")
 
@@ -167,8 +170,13 @@ Q = (Q + Qs) /2
 p = steady_state(Q)
 ##
 hfile = h5open(pwd() * "/data/embedding.hdf5", "r")
+hfile2 = h5open(pwd() * "/data/kmeans.hdf5", "r")
+centers_matrix = read(hfile2["centers"])
+centers_list = [[centers_matrix[:, 1, i], centers_matrix[:, 2, i]] for i in 1:size(centers_matrix)[3]]
+centers = get_markov_states(centers_list, 12)
 markov_chain = read(hfile["markov_chain"])
 dt2 = read(hfile["dt"])
+close(hfile2)
 close(hfile)
 Q2 = generator(markov_chain; dt = dt2)
 Λ2, V2 =  eigen(Q2)
@@ -247,3 +255,25 @@ fig = Figure()
 ax = LScene(fig[1,1]; show_axis = false)
 graphplot!(ax, g, layout=layout, node_size=0.0, edge_width=1.0)
 display(fig)
+##
+observable(state) = state[3] / sqrt(state[1]^2 + 1)
+o_t = [observable(state) for state in eachcol(timeseries)]
+o_t2 = [observable(state) for state in eachcol(s_timeseries)]
+o_t = [o_t..., o_t2...]
+leaf_inds = P5
+markov_states = zeros(3, length(P5))
+for key in keys(P4)
+    markov_states[:, P4[key]] .= CC[key]
+end
+o_e = [observable(state) for state in eachcol(markov_states)]
+o_e2 = [observable(state) for state in centers]
+
+ps = [length(f)/n for f in F]
+time_average = mean(o_t)
+ensemble_average = sum(o_e .* p)
+ensemble_average2 = sum(o_e2 .* p2)
+e1 = (time_average - ensemble_average) / time_average
+e2 = (time_average - ensemble_average2) / time_average
+
+println("The error for the uniform tree is $e1")
+println("The error for the power tree is $e2")
