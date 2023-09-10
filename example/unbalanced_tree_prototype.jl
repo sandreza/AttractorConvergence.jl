@@ -3,6 +3,8 @@ using ParallelKMeans, NetworkLayout, Graphs, Printf, GraphMakie
 using HDF5, GraphMakie, NetworkLayout, MarkovChainHammer, ProgressBars, GLMakie, Graphs
 using Printf, Random
 
+Random.seed!(12345)
+
 include(pwd() * "/generate/data.jl")
 include(pwd() * "/example/unbalanced_tree.jl")
 hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
@@ -45,7 +47,7 @@ function unstructured_tree(timeseries, p_min)
     return F, G, H, P2
 end
 
-function split2(timeseries, indices, n_min; numstates = rand([2 3]))
+function split2(timeseries, indices, n_min; numstates = 2)
     if length(indices) > n_min
         r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
         inds = [[i for (j, i) in enumerate(indices) if r0.assignments[j] == k] for k in 1:numstates]
@@ -89,7 +91,7 @@ function leaf_nodes_from_PI(PI)
 end
 
 ##
-F, G, H, PI = unstructured_tree2(timeseries, 0.00020)
+F, G, H, PI = unstructured_tree2(timeseries, 0.00015)
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
 nn = maximum([PI[i][2] for i in eachindex(PI)])
 node_labels = ones(nn)
