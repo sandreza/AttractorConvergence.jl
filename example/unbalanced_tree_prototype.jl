@@ -55,16 +55,16 @@ function split2(timeseries, indices, n_min; numstates = rand([2 3]))
     return [[]], [[]]
 end
 
-function unstructured_tree2(timeseries, p_min)
+function unstructured_tree2(timeseries, p_min; threshold = 2)
     n = size(timeseries)[2]
-    n_min = floor(Int, p_min * n)
+    n_min = floor(Int, threshold * p_min * n)
     W, F, G, P1, P2 = [collect(1:n)], [], [], [1], []
     H = []
     global_index = 1
     while (length(W) > 0)
         w = popfirst!(W)
         p1 = popfirst!(P1)
-        inds, centers = split2(timeseries, w, 2 * n_min)
+        inds, centers = split2(timeseries, w, n_min)
         if all([length(ind) > 0 for ind in inds])
             W = [inds..., W...]
             Ptmp = []
@@ -89,14 +89,17 @@ function leaf_nodes_from_PI(PI)
 end
 
 ##
-F, G, H, PI = unstructured_tree2(timeseries, 0.0002)
+F, G, H, PI = unstructured_tree2(timeseries, 0.00020)
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
 nn = maximum([PI[i][2] for i in eachindex(PI)])
 node_labels = ones(nn)
 probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)]
 node_labels = collect(1:nn)
 leaf_inds = leaf_nodes_from_PI(PI)
-scaled_entropy([probabilities[leaf-1] for leaf in leaf_inds])
+leaf_probabilities = [probabilities[leaf-1] for leaf in leaf_inds]
+se = scaled_entropy([probabilities[leaf-1] for leaf in leaf_inds])
+pr = maximum(leaf_probabilities) / minimum(leaf_probabilities)
+println("scaled entropy $se and ratio $pr")
 ##
 fig = Figure(resolution=(2 * 800, 800))
 layout = Buchheim()
