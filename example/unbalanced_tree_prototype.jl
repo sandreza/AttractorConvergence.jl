@@ -9,6 +9,7 @@ include(pwd() * "/generate/data.jl")
 include(pwd() * "/example/unbalanced_tree.jl")
 hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
 timeseries = read(hfile["timeseries"])
+s_timeseries = read(hfile["symmetrized timeseries"])
 dt= read(hfile["dt"])
 close(hfile)
 
@@ -149,11 +150,19 @@ end
 embedding = UnstructuredTree(P4, C, P3)
 ##
 me = Int64[]
+@info "computing markov embedding"
 for state in ProgressBar(eachcol(timeseries))
     push!(me, embedding(state))
 end
+@info "computing symmetric embedding"
+me_s = Int64[]
+for state in ProgressBar(eachcol(s_timeseries))
+    push!(me_s, embedding(state))
+end
 ##
 Q = generator(me; dt = dt)
+Qs = generator(me_s; dt = dt)
+Q = (Q + Qs) /2
 Λ, V =  eigen(Q)
 p = steady_state(Q)
 ##
@@ -207,3 +216,34 @@ if nn < 30
     hidespines!(ax11);
     display(fig)
 end
+
+##
+W = koopman_modes(Q)
+W2 = koopman_modes(Q2)
+##
+# 3, 8, 13
+koopman_mode = real.(W[end-3, :])
+inds = 1:100:size(timeseries)[2]
+koopman_mode = koopman_mode ./ sign(koopman_mode[end])
+colors = [koopman_mode[me[j]] for j in inds]
+colormap = :balance # :plasma # :glasbey_hv_n256 # :balance
+q = 0.01
+blue_quant = quantile(colors, q)
+red_quant = quantile(colors, 1-q)
+##
+set_theme!(backgroundcolor=:black)
+fig = Figure()
+ax = LScene(fig[1,1]; show_axis = false)
+markersize = 4
+scatter!(ax, timeseries[:, inds]; color=colors, colormap=colormap, markersize=markersize, colorrange = (blue_quant, red_quant))
+display(fig)
+##
+set_theme!(backgroundcolor=:white)
+layout = Spectral(dim=3)
+tmpQ = copy(Q)
+[tmpQ[i, i] = 0 for i in 1:size(Q)[1]]
+g = DiGraph(tmpQ)
+fig = Figure()
+ax = LScene(fig[1,1]; show_axis = false)
+graphplot!(ax, g, layout=layout, node_size=0.0, edge_width=1.0)
+display(fig)
