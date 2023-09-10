@@ -257,7 +257,7 @@ ax = LScene(fig[1,1]; show_axis = false)
 graphplot!(ax, g, layout=layout, node_size=0.0, edge_width=1.0)
 display(fig)
 ##
-observable(state) = state[1] > 0
+observable(state) = (state[3] > 23) & (state[1] > 0)
 o_t = [observable(state) for state in eachcol(timeseries)]
 o_t2 = [observable(state) for state in eachcol(s_timeseries)]
 o_t = [o_t..., o_t2...]
