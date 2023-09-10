@@ -175,10 +175,11 @@ centers_matrix = read(hfile2["centers"])
 centers_list = [[centers_matrix[:, 1, i], centers_matrix[:, 2, i]] for i in 1:size(centers_matrix)[3]]
 centers = get_markov_states(centers_list, 12)
 markov_chain = read(hfile["markov_chain"])
+s_markov_chain = read(hfile["symmetrized markov chain"])
 dt2 = read(hfile["dt"])
 close(hfile2)
 close(hfile)
-Q2 = generator(markov_chain; dt = dt2)
+Q2 = (generator(markov_chain; dt = dt2) + generator(s_markov_chain; dt = dt2))/2
 Λ2, V2 =  eigen(Q2)
 p2 = steady_state(Q2)
 ##
@@ -256,7 +257,7 @@ ax = LScene(fig[1,1]; show_axis = false)
 graphplot!(ax, g, layout=layout, node_size=0.0, edge_width=1.0)
 display(fig)
 ##
-observable(state) = state[3] / sqrt(state[1]^2 + 1)
+observable(state) = state[1] > 0
 o_t = [observable(state) for state in eachcol(timeseries)]
 o_t2 = [observable(state) for state in eachcol(s_timeseries)]
 o_t = [o_t..., o_t2...]
@@ -277,3 +278,18 @@ e2 = (time_average - ensemble_average2) / time_average
 
 println("The error for the uniform tree is $e1")
 println("The error for the power tree is $e2")
+##
+E = eigen(Q)
+E2 = eigen(Q2)
+##
+tmp = autocovariance(o_t[1:10:end]; timesteps = 1000)
+
+tmp_e = autocovariance(o_e, E, collect(0:10:10000) * dt; progress=false)
+tmp_e2 = autocovariance(o_e2, E2, collect(0:10:10000) * dt2; progress=false)
+##
+fig = Figure()
+ax = Axis(fig[1,1])
+lines!(ax, tmp, color = :black)
+scatter!(ax, tmp_e, color = (:red, 0.5))
+scatter!(ax, tmp_e2, color = (:blue, 0.5))
+display(fig)
