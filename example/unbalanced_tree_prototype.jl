@@ -45,7 +45,7 @@ function unstructured_tree(timeseries, p_min)
     return F, G, H, P2
 end
 
-function split2(timeseries, indices, n_min; numstates = 2)
+function split2(timeseries, indices, n_min; numstates = rand([2 3]))
     if length(indices) > n_min
         r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
         inds = [[i for (j, i) in enumerate(indices) if r0.assignments[j] == k] for k in 1:numstates]
@@ -80,12 +80,23 @@ function unstructured_tree2(timeseries, p_min)
     return F, G, H, P2
 end
 
+function children_from_PI(PI, parent_index)
+    return [PI[i][2] for i in eachindex(PI) if PI[i][1] == parent_index]
+end
+
+function leaf_nodes_from_PI(PI)
+    return [PI[i][2] for i in eachindex(PI) if length(children_from_PI(PI, PI[i][2])) == 0]
+end
+
 ##
-F, G, H, PI = unstructured_tree2(timeseries, 0.05)
+F, G, H, PI = unstructured_tree2(timeseries, 0.0002)
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
 nn = maximum([PI[i][2] for i in eachindex(PI)])
 node_labels = ones(nn)
-[node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)]
+probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)]
+node_labels = collect(1:nn)
+leaf_inds = leaf_nodes_from_PI(PI)
+scaled_entropy([probabilities[leaf-1] for leaf in leaf_inds])
 ##
 fig = Figure(resolution=(2 * 800, 800))
 layout = Buchheim()
