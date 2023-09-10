@@ -91,7 +91,7 @@ function leaf_nodes_from_PI(PI)
 end
 
 ##
-F, G, H, PI = unstructured_tree2(timeseries, 0.00015)
+F, G, H, PI = unstructured_tree2(timeseries, 0.000175)
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
 nn = maximum([PI[i][2] for i in eachindex(PI)])
 node_labels = ones(nn)
