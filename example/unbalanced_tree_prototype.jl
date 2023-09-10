@@ -9,6 +9,7 @@ include(pwd() * "/generate/data.jl")
 include(pwd() * "/example/unbalanced_tree.jl")
 hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
 timeseries = read(hfile["timeseries"])
+dt= read(hfile["dt"])
 close(hfile)
 
 function split(timeseries, indices, n_min)
@@ -62,36 +63,63 @@ function unstructured_tree2(timeseries, p_min; threshold = 2)
     n_min = floor(Int, threshold * p_min * n)
     W, F, G, P1, P2 = [collect(1:n)], [], [], [1], []
     H = []
+    C = Dict()
+    P3 = Dict()
+    P4 = Dict()
+    leaf_index = 1
     global_index = 1
     while (length(W) > 0)
         w = popfirst!(W)
         p1 = popfirst!(P1)
         inds, centers = split2(timeseries, w, n_min)
+        C[p1] =  centers
         if all([length(ind) > 0 for ind in inds])
             W = [inds..., W...]
             Ptmp = []
             [push!(Ptmp, global_index + i) for i in eachindex(inds)]
             P1 = [Ptmp..., P1...]
             [push!(P2, (p1, global_index + i, length(ind) / n)) for (i, ind) in enumerate(inds)]
+            Ptmp2 = Int64[]
+            [push!(Ptmp2, global_index + i) for (i, ind) in enumerate(inds)]
+            P3[p1] = Ptmp2
             global_index += length(inds)
             push!(H, [inds...])
         else
             push!(F, w)
+            push!(H, [[]])
+            P3[p1] = NaN
+            P4[p1] = leaf_index
+            leaf_index += 1
         end
     end
-    return F, G, H, P2
+    return F, G, H, P2, P3, P4, C
 end
 
 function children_from_PI(PI, parent_index)
     return [PI[i][2] for i in eachindex(PI) if PI[i][1] == parent_index]
 end
-
+function parent_to_children_map(PI)
+end
+# slow version
 function leaf_nodes_from_PI(PI)
+    #=
+    leafs = Int64[]
+    for i in ProgressBar(eachindex(PI))
+        if length(children_from_PI(PI, PI[i][2])) == 0
+            push!(leafs, PI[i][2])
+        end
+    end
+    return leafs
+    =#
     return [PI[i][2] for i in eachindex(PI) if length(children_from_PI(PI, PI[i][2])) == 0]
 end
-
+# To do list 
+# given parent index, output children 
+# given leaf node global index, output local index 
+# write embedding function 
+# compare with power_tree.jl
 ##
-F, G, H, PI = unstructured_tree2(timeseries, 0.000175)
+F, G, H, PI, P3, P4, C = unstructured_tree2(timeseries, 0.000175);
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
 nn = maximum([PI[i][2] for i in eachindex(PI)])
 node_labels = ones(nn)
@@ -102,23 +130,80 @@ leaf_probabilities = [probabilities[leaf-1] for leaf in leaf_inds]
 se = scaled_entropy([probabilities[leaf-1] for leaf in leaf_inds])
 pr = maximum(leaf_probabilities) / minimum(leaf_probabilities)
 println("scaled entropy $se and ratio $pr")
-##
-fig = Figure(resolution=(2 * 800, 800))
-layout = Buchheim()
-colormap = :glasbey_hv_n256
-set_theme!(backgroundcolor=:white)
 
-ax11 = Axis(fig[1, 1])
-G = SimpleDiGraph(adj)
-transparancy = 0.4 * adj_mod.nzval[:] / adj_mod.nzval[1] .+ 0.1
-nlabels_fontsize = 35
-edge_color = [(:red, transparancy[i]) for i in 1:edge_numbers]
-nlabels = [@sprintf("%2.2f", node_labels[i]) for i in 1:nv(G)]
-graphplot!(ax11, G, layout=layout, nlabels=nlabels, node_size=100,
-    node_color=(:orange, 0.9), edge_color=edge_color, edge_width=5,
-    arrow_size=45, nlabels_align=(:center, :center),
-    nlabels_textsize=nlabels_fontsize, tangents=((0, -1), (0, -1)))
-# cc = cameracontrols(ax11.scene)
-hidedecorations!(ax11)
-hidespines!(ax11);
+struct UnstructuredTree{L, C, CH}
+    leafmap::L 
+    centers::C 
+    children::CH
+end
+
+function (embedding::UnstructuredTree)(state)
+    current_index = 1
+    while length(embedding.centers[current_index]) > 1
+        local_child = argmin([norm(state - center) for center in embedding.centers[current_index]])
+        current_index = embedding.children[current_index][local_child]
+    end
+    return embedding.leafmap[current_index]
+end
+##
+embedding = UnstructuredTree(P4, C, P3)
+##
+me = Int64[]
+for state in ProgressBar(eachcol(timeseries))
+    push!(me, embedding(state))
+end
+##
+Q = generator(me; dt = dt)
+Λ, V =  eigen(Q)
+p = steady_state(Q)
+##
+hfile = h5open(pwd() * "/data/embedding.hdf5", "r")
+markov_chain = read(hfile["markov_chain"])
+dt2 = read(hfile["dt"])
+close(hfile)
+Q2 = generator(markov_chain; dt = dt2)
+Λ2, V2 =  eigen(Q2)
+p2 = steady_state(Q2)
+##
+fig = Figure()
+ax11 = Axis(fig[1,1]; title = "uniform probability")
+xlower = 1000
+xupper = 100
+yupper = xlower/ 2
+scatter!(ax11, real.(Λ), imag.(Λ), color = (:red, 0.1))
+xlims!(ax11, -xlower, xupper)
+ylims!(ax11, -yupper, yupper)
+ax12 = Axis(fig[1,2]; title = "power tree")
+scatter!(ax12, real.(Λ2), imag.(Λ2), color = (:blue, 0.1))
+xlims!(ax12, -xlower, xupper)
+ylims!(ax12, -yupper, yupper)
 display(fig)
+ax21 = Axis(fig[2,1]; title = "uniform probability")
+scatter!(ax21, sort(real.(p)), color = (:red, 0.1))
+ylims!(ax21, 0, 0.001)
+ax22 = Axis(fig[2,2]; title = "power tree")
+scatter!(ax22, sort(real.(p2)), color = (:blue, 0.1))
+ylims!(ax22, 0, 0.001)
+display(fig)
+##
+if nn < 30
+    fig = Figure(resolution=(2 * 800, 800))
+    layout = Buchheim()
+    colormap = :glasbey_hv_n256
+    set_theme!(backgroundcolor=:white)
+
+    ax11 = Axis(fig[1, 1])
+    G = SimpleDiGraph(adj)
+    transparancy = 0.4 * adj_mod.nzval[:] / adj_mod.nzval[1] .+ 0.1
+    nlabels_fontsize = 35
+    edge_color = [(:red, transparancy[i]) for i in 1:edge_numbers]
+    nlabels = [@sprintf("%2.2f", node_labels[i]) for i in 1:nv(G)]
+    graphplot!(ax11, G, layout=layout, nlabels=nlabels, node_size=100,
+        node_color=(:orange, 0.9), edge_color=edge_color, edge_width=5,
+        arrow_size=45, nlabels_align=(:center, :center),
+        nlabels_textsize=nlabels_fontsize, tangents=((0, -1), (0, -1)))
+    # cc = cameracontrols(ax11.scene)
+    hidedecorations!(ax11)
+    hidespines!(ax11);
+    display(fig)
+end
