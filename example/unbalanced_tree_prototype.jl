@@ -12,7 +12,7 @@ close(hfile)
 function split(timeseries, indices, n_min)
     numstates = 2
     if length(indices) > n_min
-        r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10000)
+        r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
         child_0 = (r0.assignments .== 1)
         ind1 = [i for (j, i) in enumerate(indices) if child_0[j] == 1]
         ind2 = [i for (j, i) in enumerate(indices) if child_0[j] == 0]
@@ -21,11 +21,6 @@ function split(timeseries, indices, n_min)
     return [], []
 end
 
-centers, children = split(timeseries)
-centers1, children2 = split(children[1])
-ind1, ind2 = split(timeseries, 1:size(timeseries)[2], 10^8)
-ind3, ind4 = split(timeseries, ind1)
-issetequal(setdiff(ind1, ind3), ind4)
 function unstructured_tree(timeseries, p_min)
     n = size(timeseries)[2]
     n_min = floor(Int, p_min * n)
@@ -45,7 +40,6 @@ function unstructured_tree(timeseries, p_min)
             push!(H, [ind1, ind2])
         else
             push!(F, w)
-            push!(G, qOld)
         end
     end
     return F, G, H, P2
