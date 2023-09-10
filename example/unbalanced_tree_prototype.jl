@@ -45,8 +45,43 @@ function unstructured_tree(timeseries, p_min)
     return F, G, H, P2
 end
 
+function split2(timeseries, indices, n_min; numstates = 2)
+    if length(indices) > n_min
+        r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
+        inds = [[i for (j, i) in enumerate(indices) if r0.assignments[j] == k] for k in 1:numstates]
+        centers = [r0.centers[:, k] for k in 1:numstates]
+        return inds, centers
+    end
+    return [[]], [[]]
+end
+
+function unstructured_tree2(timeseries, p_min)
+    n = size(timeseries)[2]
+    n_min = floor(Int, p_min * n)
+    W, F, G, P1, P2 = [collect(1:n)], [], [], [1], []
+    H = []
+    global_index = 1
+    while (length(W) > 0)
+        w = popfirst!(W)
+        p1 = popfirst!(P1)
+        inds, centers = split2(timeseries, w, 2 * n_min)
+        if all([length(ind) > 0 for ind in inds])
+            W = [inds..., W...]
+            Ptmp = []
+            [push!(Ptmp, global_index + i) for i in eachindex(inds)]
+            P1 = [Ptmp..., P1...]
+            [push!(P2, (p1, global_index + i, length(ind) / n)) for (i, ind) in enumerate(inds)]
+            global_index += length(inds)
+            push!(H, [inds...])
+        else
+            push!(F, w)
+        end
+    end
+    return F, G, H, P2
+end
+
 ##
-F, G, H, PI = unstructured_tree(timeseries, 0.1)
+F, G, H, PI = unstructured_tree2(timeseries, 0.05)
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI)
 nn = maximum([PI[i][2] for i in eachindex(PI)])
 node_labels = ones(nn)
