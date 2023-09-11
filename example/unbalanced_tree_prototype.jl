@@ -49,7 +49,7 @@ function unstructured_tree(timeseries, p_min)
     return F, G, H, P2
 end
 
-function split2(timeseries, indices, n_min; numstates = rand([2 3 4]))
+function split2(timeseries, indices, n_min; numstates = 2)
     if length(indices) > n_min
         r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
         inds = [[i for (j, i) in enumerate(indices) if r0.assignments[j] == k] for k in 1:numstates]
