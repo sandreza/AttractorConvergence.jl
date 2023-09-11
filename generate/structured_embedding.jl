@@ -138,6 +138,7 @@ hfile["markov_chain_ab_orbit"] = m_emb_ab
 hfile["markov_chain_fixed_point"] = m_emb_fp
 hfile["markov_chain_intersection"] = m_emb_fp_ab
 hfile["markov_chain_ulam"] = markov_index
+hfile["dt"] = dt
 close(hfile)
 
 

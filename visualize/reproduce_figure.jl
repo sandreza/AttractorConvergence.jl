@@ -1,6 +1,8 @@
 using GLMakie, MarkovChainHammer.BayesianMatrix, HDF5, Statistics, ProgressBars
 using LinearAlgebra, AttractorConvergence
 
+tic = time()
+
 figure_directory = pwd() * "/figures"
 isdir(pwd() * "/figures") ? nothing : mkdir(pwd() * "/figures")
 
@@ -87,5 +89,7 @@ include("partition_comparison.jl")
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
 println("done with ", figure_number)
 figure_number += 1
-
+##
+toc = time()
+println("total time: ", toc - tic, " seconds")
 nothing
