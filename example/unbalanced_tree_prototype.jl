@@ -49,7 +49,7 @@ function unstructured_tree(timeseries, p_min)
     return F, G, H, P2
 end
 
-function split2(timeseries, indices, n_min; numstates = 2)
+function split2(timeseries, indices, n_min; numstates = rand([2 3 4]))
     if length(indices) > n_min
         r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
         inds = [[i for (j, i) in enumerate(indices) if r0.assignments[j] == k] for k in 1:numstates]
@@ -124,11 +124,12 @@ end
 # write embedding function 
 # compare with power_tree.jl
 ##
-F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(timeseries, 0.000175);
+F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(timeseries, 0.1) # unstructured_tree2(timeseries, 0.000175);
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI);
 nn = maximum([PI[i][2] for i in eachindex(PI)]);
 node_labels = ones(nn)
 probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)];
+node_labels = vcat([1], probabilities)
 node_labels = collect(1:nn)
 c =  [length(f)/n for f in F]
 se = scaled_entropy(leaf_probabilities)

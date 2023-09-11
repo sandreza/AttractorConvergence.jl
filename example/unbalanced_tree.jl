@@ -89,7 +89,8 @@ function graph_from_PI(PI)
     N = maximum([maximum([PI[i][1], PI[i][2]]) for i in eachindex(PI)])
     node_labels = zeros(N)
     for i in eachindex(PI)
-        node_labels[PI[i][1]] = PI[i][3]
+        node_labels[PI[i][2]] = PI[i][3]
     end
+    
     return node_labels, adj, adj_mod, length(PI)
 end
