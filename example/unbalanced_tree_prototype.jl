@@ -129,10 +129,13 @@ node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI);
 nn = maximum([PI[i][2] for i in eachindex(PI)]);
 node_labels = ones(nn)
 probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)];
+probabilities = vcat([1], probabilities)
 node_labels = vcat([1], probabilities)
 node_labels = collect(1:nn)
+n = size(timeseries)[2]
 c =  [length(f)/n for f in F]
-se = scaled_entropy(leaf_probabilities)
+leaf_probabilities = c
+se = scaled_entropy(probabilities)
 pr = maximum(leaf_probabilities) / minimum(leaf_probabilities)
 println("scaled entropy $se and ratio $pr")
 
