@@ -1,7 +1,7 @@
 @info "evolving lorenz equations"
 
-timesteps = 10^7
-m_timeseries, Δt = lorenz_data(timesteps=timesteps, Δt=0.001)
+timesteps = 10^8
+m_timeseries, Δt = lorenz_data(timesteps=timesteps, Δt=0.001, ϵ = sqrt(2))
 s_timeseries = lorenz_symmetry(m_timeseries)
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 ##

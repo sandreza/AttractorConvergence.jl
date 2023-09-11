@@ -63,9 +63,9 @@ end
 ##
 # observables_list = [t -> t[3], t -> t[1] * t[2], t -> t[1]^2, t -> t[2]^2, t -> t[1] * t[2] * t[3], t -> t[3] * log(t[3])]
 # observables_list_names = ["z", "xy", "x²", "y²", "xyz", "z log(z)"]
-observables_list = [t -> t[3], t -> t[3]^2, t -> t[3]^3, t -> t[3]^4, t -> t[3]^5, t -> t[3] * log(t[3])]
+observables_list = [t -> t[3], t -> t[3]^2, t -> t[3]^3, t -> t[3]^4, t -> t[3]^5, t -> t[3] * log(abs(t[3]) + eps(1.0))]
 observables_list_colors = [:blue, :red, :green, :orange, :purple, :yellow]
-observables_list_names = ["z", "z²", "z³", "z⁴", "z⁵", "z log(z)"]
+observables_list_names = ["z", "z²", "z³", "z⁴", "z⁵", "z log(|z|)"]
 
 observable_lists = Vector{Float64}[]
 observable_values = Float64[]
