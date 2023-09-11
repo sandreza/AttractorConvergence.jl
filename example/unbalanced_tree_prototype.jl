@@ -1,7 +1,7 @@
 using HDF5
 using ParallelKMeans, NetworkLayout, Graphs, Printf, GraphMakie
 using HDF5, GraphMakie, NetworkLayout, MarkovChainHammer, ProgressBars, GLMakie, Graphs
-using Printf, Random
+using Printf, Random, SparseArrays
 
 Random.seed!(12345)
 
@@ -124,18 +124,22 @@ end
 # write embedding function 
 # compare with power_tree.jl
 ##
-F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(timeseries, 0.1) # unstructured_tree2(timeseries, 0.000175);
+@info "constructing data"
+kmeans_data = hcat(timeseries[:, 1:1:end], s_timeseries[:, 1:1:end])
+@info "constructing tree"
+F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(kmeans_data, 0.000175);
+@info "getting node labels"
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI);
 nn = maximum([PI[i][2] for i in eachindex(PI)]);
 node_labels = ones(nn)
 probabilities = [node_labels[PI[i][2]] = PI[i][3] for i in eachindex(PI)];
 probabilities = vcat([1], probabilities)
-node_labels = vcat([1], probabilities)
+node_labels = probabilities
 node_labels = collect(1:nn)
-n = size(timeseries)[2]
+n = size(kmeans_data)[2]
 c =  [length(f)/n for f in F]
 leaf_probabilities = c
-se = scaled_entropy(probabilities)
+se = scaled_entropy(leaf_probabilities)
 pr = maximum(leaf_probabilities) / minimum(leaf_probabilities)
 println("scaled entropy $se and ratio $pr")
 
@@ -167,12 +171,14 @@ for state in ProgressBar(eachcol(s_timeseries))
     push!(me_s, embedding(state))
 end
 ##
+@info "constructing generator and computing steady states"
 Q = generator(me; dt = dt)
 Qs = generator(me_s; dt = dt)
 Q = (Q + Qs) /2
 Λ, V =  eigen(Q)
 p = steady_state(Q)
 ##
+@info "Viz eigenvalues"
 hfile = h5open(pwd() * "/data/embedding.hdf5", "r")
 hfile2 = h5open(pwd() * "/data/kmeans.hdf5", "r")
 centers_matrix = read(hfile2["centers"])
@@ -236,7 +242,7 @@ W2 = koopman_modes(Q2)
 ##
 # 3, 8, 13
 koopman_mode = real.(W[end-3, :])
-inds = 1:100:size(timeseries)[2]
+inds = 1:1000:size(timeseries)[2]
 koopman_mode = koopman_mode ./ sign(koopman_mode[end])
 colors = [koopman_mode[me[j]] for j in inds]
 colormap = :balance # :plasma # :glasbey_hv_n256 # :balance
