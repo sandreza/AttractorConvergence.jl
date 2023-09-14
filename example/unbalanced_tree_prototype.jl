@@ -1,53 +1,19 @@
 using HDF5
-using ParallelKMeans, NetworkLayout, Graphs, Printf, GraphMakie
-using HDF5, GraphMakie, NetworkLayout, MarkovChainHammer, ProgressBars, GLMakie, Graphs
+using ParallelKMeans
+using HDF5, MarkovChainHammer, ProgressBars 
+using GraphMakie, NetworkLayout,  GLMakie, Graphs, Printf
 using Printf, Random, SparseArrays
 
 Random.seed!(12345)
 
-include(pwd() * "/generate/data.jl")
+# include(pwd() * "/generate/data.jl")
 include(pwd() * "/example/unbalanced_tree.jl")
-hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
+data_directory = "/small_time_data"
+hfile = h5open(pwd() * data_directory * "/lorenz.hdf5", "r")
 timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 dt= read(hfile["dt"])
 close(hfile)
-
-function split(timeseries, indices, n_min)
-    numstates = 2
-    if length(indices) > n_min
-        r0 = kmeans(view(timeseries, :, indices), numstates; max_iters=10^4)
-        child_0 = (r0.assignments .== 1)
-        ind1 = [i for (j, i) in enumerate(indices) if child_0[j] == 1]
-        ind2 = [i for (j, i) in enumerate(indices) if child_0[j] == 0]
-        return ind1, ind2
-    end
-    return [], []
-end
-
-function unstructured_tree(timeseries, p_min)
-    n = size(timeseries)[2]
-    n_min = floor(Int, p_min * n)
-    W, F, G, P1, P2 = [collect(1:n)], [], [], [1], []
-    H = []
-    global_index = 1
-    while (length(W) > 0)
-        w = popfirst!(W)
-        p1 = popfirst!(P1)
-        ind1, ind2 = split(timeseries, w, 2 * n_min)
-        if (length(ind1) > 0) & (length(ind2) > 0)
-            W = [ind1, ind2, W...]
-            P1 = [global_index + 1, global_index + 2, P1...]
-            P2 = push!(P2, (p1, global_index + 1, length(ind1) / n))
-            P2 = push!(P2, (p1, global_index + 2, length(ind2) / n))
-            global_index += 2
-            push!(H, [ind1, ind2])
-        else
-            push!(F, w)
-        end
-    end
-    return F, G, H, P2
-end
 
 function split2(timeseries, indices, n_min; numstates = 2)
     if length(indices) > n_min
@@ -100,33 +66,12 @@ function unstructured_tree2(timeseries, p_min; threshold = 2)
     return F, G, H, P2, P3, P4, C, CC, P5
 end
 
-function children_from_PI(PI, parent_index)
-    return [PI[i][2] for i in eachindex(PI) if PI[i][1] == parent_index]
-end
-function parent_to_children_map(PI)
-end
-# slow version
-function leaf_nodes_from_PI(PI)
-    #=
-    leafs = Int64[]
-    for i in ProgressBar(eachindex(PI))
-        if length(children_from_PI(PI, PI[i][2])) == 0
-            push!(leafs, PI[i][2])
-        end
-    end
-    return leafs
-    =#
-    return [PI[i][2] for i in eachindex(PI) if length(children_from_PI(PI, PI[i][2])) == 0]
-end
-# To do list 
-# given parent index, output children 
-# given leaf node global index, output local index 
-# write embedding function 
-# compare with power_tree.jl
 ##
 @info "constructing data"
-kmeans_data = hcat(timeseries[:, 1:1:end], s_timeseries[:, 1:1:end])
+skip = ceil(Int, 0.1/dt)
+kmeans_data = hcat(timeseries[:, 1:skip:end], s_timeseries[:, 1:skip:end])
 @info "constructing tree"
+# 1/(4000 * 1.5), kmeans target = 4000, gives heuristic of 1/(4096 * 1.4)
 F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(kmeans_data, 0.000175);
 @info "getting node labels"
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI);
@@ -174,9 +119,11 @@ end
 @info "constructing generator and computing steady states"
 Q = generator(me; dt = dt)
 Qs = generator(me_s; dt = dt)
+P = (perron_frobenius(me; step = 2) + perron_frobenius(me_s; step = 2)) / 2
 Q = (Q + Qs) /2
 Λ, V =  eigen(Q)
 p = steady_state(Q)
+#=
 ##
 @info "Viz eigenvalues"
 hfile = h5open(pwd() * "/data/embedding.hdf5", "r")
@@ -238,6 +185,7 @@ end
 
 ##
 W = koopman_modes(Q)
+W3 = koopman_modes(P)
 W2 = koopman_modes(Q2)
 ##
 # 3, 8, 13
@@ -246,7 +194,7 @@ inds = 1:1000:size(timeseries)[2]
 koopman_mode = koopman_mode ./ sign(koopman_mode[end])
 colors = [koopman_mode[me[j]] for j in inds]
 colormap = :balance # :plasma # :glasbey_hv_n256 # :balance
-q = 0.01
+q = 0.1
 blue_quant = quantile(colors, q)
 red_quant = quantile(colors, 1-q)
 ##
@@ -302,4 +250,27 @@ ax = Axis(fig[1,1])
 lines!(ax, tmp, color = :black)
 scatter!(ax, tmp_e, color = (:red, 0.5))
 scatter!(ax, tmp_e2, color = (:blue, 0.5))
+display(fig)
+=#
+##
+t= range(0, 2π, length = 100)
+xs = cos.(t)
+ys = sin.(t)
+lls = []
+
+fig = Figure(resolution = (800, 800)) 
+steplist = [1, 10, 100, 1000]
+for i in 1:4
+    ii = (i-1)÷2 + 1
+    jj = (i-1)%2 + 1
+    ax = Axis(fig[ii,jj])
+    # P = (perron_frobenius(me; step = steplist[i]) + perron_frobenius(me_s; step = steplist[i]))/2
+    # ll, _ = eigen(P)
+    # push!(lls, ll)
+    ll = lls[i]
+    scatter!(ax, real.(ll), imag.(ll))
+    lines!(ax, xs, ys, color = :red)
+    xlims!(ax, (-1.1, 1.1))
+    ylims!(ax, (-1.1, 1.1))
+end
 display(fig)

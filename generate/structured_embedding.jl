@@ -1,4 +1,4 @@
-hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
+hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 close(hfile)
 
@@ -133,7 +133,7 @@ end
 
 ##
 @info "saving"
-hfile = h5open(pwd() * "/data/structured_embedding.hdf5", "w")
+hfile = h5open(pwd() * data_directory  * "/structured_embedding.hdf5", "w")
 hfile["markov_chain_ab_orbit"] = m_emb_ab
 hfile["markov_chain_fixed_point"] = m_emb_fp
 hfile["markov_chain_intersection"] = m_emb_fp_ab

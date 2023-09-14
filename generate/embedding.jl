@@ -1,11 +1,11 @@
 # open Lorenz data 
-hfile = h5open(pwd() * "/data/lorenz.hdf5", "r")
+hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
 timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 Δt = read(hfile["dt"])
 close(hfile)
 # read centers list from file 
-hfile = h5open(pwd() * "/data/kmeans.hdf5", "r")
+hfile = h5open(pwd() * data_directory  * "/kmeans.hdf5", "r")
 centers_matrix= read(hfile["centers"])
 levels = read(hfile["levels"])
 close(hfile)
@@ -34,7 +34,7 @@ for i in ProgressBar(1:size(s_timeseries)[2])
 end
 ##
 @info "saving"
-hfile = h5open(pwd() * "/data/embedding.hdf5", "w")
+hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "w")
 hfile["markov_chain"] = markov_chain
 hfile["symmetrized markov chain"] = s_markov_chain
 hfile["dt"] = Δt
