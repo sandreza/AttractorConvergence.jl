@@ -125,7 +125,7 @@ end
 # compare with power_tree.jl
 ##
 @info "constructing data"
-kmeans_data = hcat(timeseries[:, 1:1:end], s_timeseries[:, 1:1:end])
+kmeans_data = timeseries# hcat(timeseries[:, 1:100:end], s_timeseries[:, 1:100:end])
 @info "constructing tree"
 F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(kmeans_data, 0.000175);
 @info "getting node labels"
@@ -238,15 +238,19 @@ end
 
 ##
 W = koopman_modes(Q)
+step = 1
+Pmat = (perron_frobenius(me; step = step) + perron_frobenius(me_s; step = step))/2 # matrix exponential also works
+ΛP, VP = eigen(Pmat)
+W3 = inv(VP)
 W2 = koopman_modes(Q2)
 ##
 # 3, 8, 13
-koopman_mode = real.(W[end-3, :])
-inds = 1:1000:size(timeseries)[2]
+koopman_mode = real.(W3[end-3, :])
+inds = 1:10:size(timeseries)[2]
 koopman_mode = koopman_mode ./ sign(koopman_mode[end])
 colors = [koopman_mode[me[j]] for j in inds]
 colormap = :balance # :plasma # :glasbey_hv_n256 # :balance
-q = 0.01
+q = 0.05
 blue_quant = quantile(colors, q)
 red_quant = quantile(colors, 1-q)
 ##
