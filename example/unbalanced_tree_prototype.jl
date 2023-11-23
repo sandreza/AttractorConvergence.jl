@@ -127,7 +127,7 @@ end
 @info "constructing data"
 kmeans_data = timeseries# hcat(timeseries[:, 1:100:end], s_timeseries[:, 1:100:end])
 @info "constructing tree"
-F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(kmeans_data, 0.000175);
+F, G, H, PI, P3, P4, C, CC, P5 = unstructured_tree2(kmeans_data, 0.01);# 0.000175);
 @info "getting node labels"
 node_labels, adj, adj_mod, edge_numbers = graph_from_PI(PI);
 nn = maximum([PI[i][2] for i in eachindex(PI)]);
@@ -214,7 +214,7 @@ scatter!(ax22, sort(real.(p2)), color = (:blue, 0.1))
 ylims!(ax22, 0, 0.001)
 display(fig)
 ##
-if nn < 30
+if nn < 200
     fig = Figure(resolution=(2 * 800, 800))
     layout = Buchheim()
     colormap = :glasbey_hv_n256
