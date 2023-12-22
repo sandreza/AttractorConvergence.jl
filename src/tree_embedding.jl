@@ -33,7 +33,7 @@ end
 euclidean_distance(x, y) = sqrt(sum((x .- y).^2))
 maxk(a, k) = partialsortperm(a, 1:k, rev=true)
 
-function even_split(data, partitions; max_iters = 10000, tolerance = 1.5)
+function even_split(data, partitions; max_iters = 10000, tolerance = 1.01)
 
     centers, children = linear_split(data, partitions; max_iters)
     children = buildup.(children)
@@ -46,7 +46,7 @@ function even_split(data, partitions; max_iters = 10000, tolerance = 1.5)
     for i in 1:partitions
         add_or_remove[i] = numelem[i] > max_number ? 2 : numelem[i] < min_number ? 1 : 0
     end
-
+    
     if sum(add_or_remove) == 0 
         children = children .|> Vector{Vector{Float64}}
         children = flatten.(children)
@@ -54,10 +54,10 @@ function even_split(data, partitions; max_iters = 10000, tolerance = 1.5)
         for i in 1:partitions
             children[i] = Array(children[i]')
         end
-    
+
         return centers, children
     end
-
+    
     maxidx = argmax(add_or_remove)
     
     distance = zeros(length(children[maxidx]))

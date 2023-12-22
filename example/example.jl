@@ -5,8 +5,10 @@ using ProgressBars, LinearAlgebra, Statistics, Random
 using MarkovChainHammer.BayesianMatrix
 import MarkovChainHammer.TransitionMatrix: generator, holding_times, steady_state, perron_frobenius, entropy
 import MarkovChainHammer.Utils: histogram, autocovariance
+
 Random.seed!(12345)
 
+#=
 @info "evolving lorenz equations"
 function lorenz_data(; timesteps=10^7, Δt=0.005, ϵ=0.0, ρ=t -> 28.0, initial_condition=[1.4237717232359446, 1.778970017190979, 16.738782836244038])
     rhs(x, t) = lorenz(x, ρ(t), 10.0, 8.0 / 3.0)
@@ -49,17 +51,16 @@ timeseries, Δt = lorenz_data(timesteps=timesteps, Δt=0.005)
 s_timeseries = lorenz_symmetry(timeseries)
 joined_timeseries = hcat(timeseries, s_timeseries) # only for Partitioning Purpose
 ##
-@info "starting k-means"
 X = joined_timeseries[:,1:1:end]
 
+=#
 ##
-@info "done with k-means"
-
+@info "starting k-means"
 lev = 5
-par = 4
+par = 2
 
 # constructing embedding with partitions^levels number of states
-embedding = PowerTreeEmbedding(X; levels = lev, partitions = par, split_function = AttractorConvergence.even_split)
+embedding = PowerTreeEmbedding(X; levels = lev, partitions = par) #, split_function = AttractorConvergence.even_split)
 
 ##
 @info "computing markov embedding"
