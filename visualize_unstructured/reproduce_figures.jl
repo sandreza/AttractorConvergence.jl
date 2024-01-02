@@ -1,3 +1,5 @@
+data_directory = "/test_data"
+
 figure_directory = pwd() * "/unstructured_figures"
 isdir(figure_directory) ? nothing : mkdir(figure_directory)
 

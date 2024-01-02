@@ -29,3 +29,5 @@ if isfile(pwd() * data_directory  * "/embedding.hdf5") #unideal because just che
 else
     include("kmeans.jl")
 end
+##
+# 10^(1/3 * (3 + 15) ) seems like a good number of bins (0, 1, ..., 15) for plotting
