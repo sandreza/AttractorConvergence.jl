@@ -10,7 +10,7 @@ Random.seed!(12345)
 tic = time()
 
 # create data directory if it's not there
-data_directory = "/test_data"
+data_directory = "/real_data"
 isdir(pwd() * data_directory ) ? nothing : mkdir(pwd() * data_directory )
 
 ##

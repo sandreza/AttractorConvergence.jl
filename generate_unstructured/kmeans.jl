@@ -7,9 +7,9 @@ s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 @info "starting k-means"
-p_min = 1e-4
+p_min = 1e-6
 @info "computing embedding"
-Nmax = 100 * round(Int, 1/ p_min)
+Nmax = 50 * round(Int, 1/ p_min)
 skip = maximum([round(Int, size(joined_timeseries)[2] / Nmax), 1])
 F, H, edge_information, parent_to_children, global_to_local, centers_list, CC, local_to_global = unstructured_tree(joined_timeseries[:, 1:skip:end], p_min; threshold = 1.5);
 _, _, G, _ = graph_from_edge_information(edge_information)
@@ -23,7 +23,7 @@ G = DiGraph(G)
 # graph_edges should be called edge_information
 embedding = UnstructuredTree(global_to_local, centers_list, parent_to_children)
 
-probabilities = [2^(-i) for i in 0:-log(p_min)/log(2)]
+probabilities = [10^(-(i/4)) for i in 0:round(Int, -log(p_min)/log(10^(1/4)))]
 
 local_to_locals = []
 local_to_globals = []
