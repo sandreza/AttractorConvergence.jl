@@ -1,5 +1,3 @@
-using GLMakie, HDF5
-
 @info "loading data"
 hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])

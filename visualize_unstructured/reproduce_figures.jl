@@ -1,3 +1,7 @@
+using MarkovChainHammer, ProgressBars, LinearAlgebra
+using GLMakie, HDF5
+
+
 data_directory = "/test_data"
 
 figure_directory = pwd() * "/unstructured_figures"
@@ -12,6 +16,11 @@ println("done with ", figure_number)
 figure_number += 1
 
 include("quasi_invariant_set.jl")
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+println("done with ", figure_number)
+figure_number += 1
+
+include("steady_state.jl")
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
 println("done with ", figure_number)
 figure_number += 1

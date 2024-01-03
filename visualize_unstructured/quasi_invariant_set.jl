@@ -1,5 +1,3 @@
-using MarkovChainHammer, ProgressBars, LinearAlgebra
-
 hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
 markov_chain = read(hfile["markov_chain"])
 coarse_markov_chain = read(hfile["coarse_markov_chains"])
