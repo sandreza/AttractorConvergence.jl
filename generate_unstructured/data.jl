@@ -27,7 +27,7 @@ include("utils.jl")
 if isfile(pwd() * data_directory  * "/embedding.hdf5") #unideal because just checking for one
     @info "embedding data already exists. skipping data generation"
 else
-    include("kmeans.jl")
+    include("kmeans_and_embedding.jl")
 end
 ##
 # 10^(1/3 * (3 + 15) ) seems like a good number of bins (0, 1, ..., 15) for plotting
