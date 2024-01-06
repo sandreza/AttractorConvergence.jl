@@ -143,8 +143,8 @@ function new_unstructured_coarsening_p2c(p_min, parent_to_children, probabilitie
                     W = [ind, W...]
                 else
                     leaf_index += 1
-                    coarse_global_to_local[w] = leaf_index
-                    coarse_local_to_global[leaf_index] = w
+                    coarse_global_to_local[ind] = leaf_index
+                    coarse_local_to_global[leaf_index] = ind
                 end
             end
         end
