@@ -107,21 +107,3 @@ for (old_index, probability) in ProgressBar(enumerate(coarse_probabilities[last_
     end
     close(hfile)
 end
-# compute transition matrix (should use only half the data)
-#=
-Ps = []
-N = size(coarse_markov_chain)[1]
-N2 = N ÷ 2
-for i in ProgressBar(11:14)
-    P1 = perron_frobenius(coarse_markov_chain[1:N2, i])
-    P2 = perron_frobenius(coarse_markov_chain[N2+1:end, i])
-    P = (P1 + P2)/2
-    push!(Ps, P)
-end
-
-Ws = []
-for i in ProgressBar(1:4)
-    Λ, W = eigen(Ps[i]')
-    push!(Ws, real.(W[:, end-3]))
-end
-=#
