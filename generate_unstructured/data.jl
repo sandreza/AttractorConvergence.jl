@@ -23,11 +23,23 @@ end
 ##
 include("utils.jl")
 ##
-# create embedding 
 if isfile(pwd() * data_directory  * "/embedding.hdf5") #unideal because just checking for one
     @info "embedding data already exists. skipping data generation"
 else
     include("kmeans_and_embedding.jl")
 end
 ##
-# 10^(1/3 * (3 + 15) ) seems like a good number of bins (0, 1, ..., 15) for plotting
+if isfile(pwd() * data_directory  * "/eigenvalues.hdf5") #unideal because just checking for one
+    @info "eigenvalue data already exists. skipping data generation"
+else
+    include("generators_and_eigenvalues.jl")
+end
+##
+if isfile(pwd() * data_directory  * "/koopman_timeseries.hdf5") #unideal because just checking for one
+    @info "eigenvalue data already exists. skipping data generation"
+else
+    include("koopman_timeseries.jl")
+end
+
+##
+# TO DO: autocorrelation data, steady state data

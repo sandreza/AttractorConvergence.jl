@@ -1,8 +1,7 @@
 using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, SparseArrays
 using StateSpacePartitions
-data_directory = "/test_data"
-first_index = 1
 
+first_index = 1
 hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
 dt = read(hfile["dt"])
 close(hfile)
