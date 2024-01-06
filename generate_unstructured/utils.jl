@@ -104,3 +104,63 @@ function new_unstructured_coarsen_edges(graph_edges, probability_minimum, parent
     end
     return local_to_local, new_local_to_global
 end
+
+function find_leaves_p2c(ind, parent_to_children)
+    W = copy(parent_to_children[ind])
+    local_leaves = Int64[]
+    if length(W) == 1
+        return [ind]
+    else
+        while length(W) > 0
+            w = popfirst!(W)
+            inds = copy(parent_to_children[w])
+            if length(inds) > 1
+                W = [inds..., W...]
+            else
+                push!(local_leaves, w)
+            end
+        end
+    end
+    return local_leaves
+end
+
+function new_unstructured_coarsening_p2c(p_min, parent_to_children, probabilities, global_to_local)
+    coarse_global_to_local = Dict{Int64, Int64}()
+    coarse_local_to_global = Dict{Int64, Int64}()
+    W = copy(parent_to_children[1])
+    leaf_index = 0
+    # tic = Base.time()
+    while length(W) > 0
+        w = popfirst!(W)
+        inds = parent_to_children[w]
+        if length(inds) < 2
+            leaf_index += 1
+            coarse_global_to_local[w] = leaf_index
+            coarse_local_to_global[leaf_index] = w
+        else
+            for ind in inds
+                if probabilities[ind] > p_min
+                    W = [ind, W...]
+                else
+                    leaf_index += 1
+                    coarse_global_to_local[w] = leaf_index
+                    coarse_local_to_global[leaf_index] = w
+                end
+            end
+        end
+    end
+    # toc = Base.time()
+    # println("took ", toc - tic, " seconds for finding root nodes")
+    # @info "coarse graining map"
+    # tic = Base.time()
+    local_to_local = Dict{Int64, Int64}()
+    for global_key in keys(coarse_global_to_local)
+        local_leaves = find_leaves_p2c(global_key, parent_to_children)
+        for leave in local_leaves
+            local_to_local[global_to_local[leave]] = coarse_global_to_local[global_key]
+        end
+    end
+    # toc = Base.time()
+    # println("took ", toc - tic, " seconds for coarse graining map")
+    return local_to_local, coarse_local_to_global
+end
