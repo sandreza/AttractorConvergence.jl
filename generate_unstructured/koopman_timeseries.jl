@@ -16,7 +16,8 @@ hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
 centers = read(hfile["centers $first_index"])
 close(hfile)
 
-@info "computing eigenvalues for small matrices"
+dt_min = 1e-2
+@info "computing koopman mode timeseries"
 kthfile = h5open(pwd() * data_directory  * "/koopman_timeseries.hdf5", "w")
 for (index, probability) in ProgressBar(enumerate(coarse_probabilities))
     nhfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
@@ -25,7 +26,7 @@ for (index, probability) in ProgressBar(enumerate(coarse_probabilities))
     hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
     w = read(hfile["generator koopman eigenvector $index"] )
     close(hfile)
-    skip = maximum([round(Int, 1e-2/dt ), 1])
+    skip = maximum([round(Int, dt_min/dt ), 1])
     skipdt = skip * dt 
     markov_chain = coarse_markov_chain[1:skip:end]
     koopman_timeseries = zeros(length(markov_chain))
@@ -40,7 +41,7 @@ for (index, probability) in ProgressBar(enumerate(coarse_probabilities))
         w = read(hfile["perron_frobenius $k koopman eigenvector $index"] )
         kdt = read(hfile["perron_frobenius $k dt $index"])
         close(hfile)
-        skip = maximum([round(Int, 1e-2/dt ), 1])
+        skip = maximum([round(Int, dt_min/dt ), 1])
         skipdt = skip * dt 
         markov_chain = coarse_markov_chain[1:skip:end]
         koopman_timeseries = zeros(length(markov_chain))
