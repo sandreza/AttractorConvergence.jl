@@ -76,4 +76,4 @@ npartitions = [length(ps[i]) for i in 1:25]
 kldivs = [kl_divergence(probabilities_e[i], probabilities_t[i]) for i in 1:25]
 x = log10.(npartitions)
 y = log10.(kldivs)
-scatter(x, y)
+lines(x, y)

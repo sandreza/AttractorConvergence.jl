@@ -1,11 +1,11 @@
 data_directory = "/real_data"
 
-dt_skip = 0.01
+dt_skip = 0.0001
 
 @info "loading data"
 hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
 dt = read(hfile["dt"])
-skip = round(Int, dt_skip/dt)
+skip = maximum([round(Int, dt_skip/dt), 1])
 m_timeseries = read(hfile["timeseries"])[:, 1:skip:end]
 s_timeseries = read(hfile["symmetrized timeseries"])[:, 1:skip:end]
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
