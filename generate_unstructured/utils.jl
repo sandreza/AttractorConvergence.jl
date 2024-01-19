@@ -164,3 +164,20 @@ function new_unstructured_coarsening_p2c(p_min, parent_to_children, probabilitie
     # println("took ", toc - tic, " seconds for coarse graining map")
     return local_to_local, coarse_local_to_global
 end
+
+struct SparseGenerator{S, T}
+    Q::S
+    dt::T
+end
+
+(s::SparseGenerator)(p) = s.Q * p
+(s::SparseGenerator)(p, t) = s.Q * p
+
+function steady_state(partitions)
+    p = zeros(maximum(partitions))
+    for i in ProgressBar(eachindex(partitions))
+        p[partitions[i]] += 1
+    end
+    return p ./ sum(p)
+end
+
