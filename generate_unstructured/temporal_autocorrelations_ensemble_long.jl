@@ -50,7 +50,7 @@ for i in ProgressBar(18:imax)
     N2 = N ÷ 2
 
     @info "calculating operators"
-    if length(p) < 4e4
+    if length(p) < 2e4
         if generator_compute
             Qa = generator(coarse_markov_chain[1:N2]; dt = dt)
             Qb = generator(coarse_markov_chain[N2+1:end]; dt = dt)
