@@ -1,5 +1,5 @@
 
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
@@ -46,7 +46,7 @@ for i in eachindex(centers_list)
 end
 ##
 @info "saving centers list data"
-hfile = h5open(pwd() * data_directory  * "/kmeans.hdf5", "w")
+hfile = h5open(data_directory  * "/kmeans.hdf5", "w")
 hfile["centers"] = centers_matrix
 hfile["levels"] = levels
 close(hfile)

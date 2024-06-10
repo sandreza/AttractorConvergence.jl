@@ -2,8 +2,8 @@ using MarkovChainHammer, HDF5, ProgressBars
 using GLMakie
 
 import MarkovChainHammer.Utils: histogram
-eigenvalues_hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
-centers_hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
+eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
+centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
 ps = Vector{Float64}[]
 centers = Vector{Float64}[]
 for i in 1:25
@@ -17,7 +17,7 @@ close(centers_hfile)
 
 dt_skip = 0.01
 @info "loading data"
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 dt = read(hfile["dt"])
 skip = round(Int, dt_skip/dt)
 joined_timeseries = read(hfile["timeseries"])[:, 1:skip:end]

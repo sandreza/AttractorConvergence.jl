@@ -2,12 +2,12 @@ using HDF5, ProgressBars, MarkovChainHammer, AttractorConvergence, SparseArrays
 
 include("utils.jl")
 
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 
 @info "loading data"
-mcfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
-centers_hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
-eigenvalues_hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
+centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
+eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 
 generator_compute = true # increase computation by a factor of 4
 
@@ -19,7 +19,7 @@ close(mcfile)
 close(centers_hfile)
 close(eigenvalues_hfile)
 
-# hfile = h5open(pwd() * data_directory  * "/temporal_autocovariance.hdf5", "w")
+# hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "w")
 Tfinal = 10
 numsteps = ceil(Int, Tfinal / dt) + 1
 q_runge_kutta_correlation = zeros(numsteps)
@@ -33,9 +33,9 @@ pf100_runge_kutta_correlation = zeros(numsteps100)
 # something strange happened with 7, so we skip it
 for i in ProgressBar(18:imax)
     println("On case $i")
-    mcfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
-    centers_hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
-    eigenvalues_hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+    mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
+    centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
+    eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 
     coarse_markov_chain = read(mcfile["coarse_markov_chains $i"])
     centers = read(centers_hfile["centers $i"])
@@ -86,7 +86,7 @@ for i in ProgressBar(18:imax)
             observable_trajectory .= rk4.xⁿ⁺¹
             q_runge_kutta_correlation[jj] = sum(𝒪 .* p .* observable_trajectory) .- sum(p .* 𝒪)^2
         end
-        hfile = h5open(pwd() * data_directory  * "/temporal_autocovariance.hdf5", "r+")
+        hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r+")
         hfile["ensemble mean autocovariance generator $i"] = q_runge_kutta_correlation
     else
         @info "perron-frobenius 1 autocovariance"
@@ -96,7 +96,7 @@ for i in ProgressBar(18:imax)
             observable_trajectory .= PF1' * observable_trajectory
             pf1_runge_kutta_correlation[jj] = sum(𝒪 .* p1 .* observable_trajectory) .- sum(p1 .* 𝒪)^2
         end
-        hfile = h5open(pwd() * data_directory  * "/temporal_autocovariance.hdf5", "r+")
+        hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r+")
         hfile["ensemble mean autocovariance perron_frobenius 1 $i"] = pf1_runge_kutta_correlation
     end
     close(hfile)

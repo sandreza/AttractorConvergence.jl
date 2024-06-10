@@ -9,7 +9,7 @@ Random.seed!(12345)
 # include(pwd() * "/generate/data.jl")
 include(pwd() * "/example/unbalanced_tree.jl")
 data_directory = "/small_time_data"
-hfile = h5open(pwd() * data_directory * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory * "/lorenz.hdf5", "r")
 timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 dt= read(hfile["dt"])

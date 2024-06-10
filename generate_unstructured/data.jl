@@ -10,12 +10,12 @@ Random.seed!(12345)
 tic = time()
 
 # create data directory if it's not there
-data_directory = "/real_data"
-isdir(pwd() * data_directory ) ? nothing : mkdir(pwd() * data_directory )
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
+isdir(data_directory ) ? nothing : mkdir(data_directory)
 
 ##
 # generate Lorenz data
-if isfile(pwd() * data_directory  * "/lorenz.hdf5") #unideal because just checking for one
+if isfile(data_directory  * "/lorenz.hdf5") #unideal because just checking for one
     @info "lorenz data already exists. skipping data generation"
 else
     include("lorenz.jl")
@@ -23,19 +23,19 @@ end
 ##
 include("utils.jl")
 ##
-if isfile(pwd() * data_directory  * "/embedding.hdf5") #unideal because just checking for one
+if isfile(data_directory  * "/embedding.hdf5") #unideal because just checking for one
     @info "embedding data already exists. skipping data generation"
 else
     include("kmeans_and_embedding.jl")
 end
 ##
-if isfile(pwd() * data_directory  * "/eigenvalues.hdf5") #unideal because just checking for one
+if isfile(data_directory  * "/eigenvalues.hdf5") #unideal because just checking for one
     @info "eigenvalue data already exists. skipping data generation"
 else
     include("generators_and_eigenvalues.jl")
 end
 ##
-if isfile(pwd() * data_directory  * "/koopman_timeseries.hdf5") #unideal because just checking for one
+if isfile(data_directory  * "/koopman_timeseries.hdf5") #unideal because just checking for one
     @info "eigenvalue data already exists. skipping data generation"
 else
     include("koopman_timeseries.jl")

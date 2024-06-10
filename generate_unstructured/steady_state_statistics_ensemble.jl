@@ -1,9 +1,9 @@
 using HDF5, ProgressBars
 
-data_directory = "/real_data"
-hfile = h5open(pwd() * data_directory  * "/ensemble_mean_statistics.hdf5", "w")
-centers_hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
-eigenvalues_hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
+hfile = h5open(data_directory  * "/ensemble_mean_statistics.hdf5", "w")
+centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
+eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 imax = length(keys(centers_hfile)) - 1
 for i in ProgressBar(1:imax)
     centers = read(centers_hfile["centers $i"])
@@ -26,7 +26,7 @@ close(eigenvalues_hfile)
 close(hfile)
 
 ##
-hfile = h5open(pwd() * data_directory  * "/ensemble_mean_statistics.hdf5", "r+")
+hfile = h5open(data_directory  * "/ensemble_mean_statistics.hdf5", "r+")
 for i in ProgressBar(1:imax)
     for state_string in ["x", "y", "z"]
         moments = read(hfile[state_string * " moments $i"])

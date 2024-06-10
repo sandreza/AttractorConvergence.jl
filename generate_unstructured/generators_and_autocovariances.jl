@@ -2,13 +2,13 @@ using StateSpacePartitions, MarkovChainHammer
 
 include("utils.jl")
 
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+hfile = h5open(data_directory  * "/embedding.hdf5", "r")
 markov_chain = read(hfile["markov_chain"])
 coarse_markov_chain = read(hfile["coarse_markov_chains"])
 close(hfile)
 
 @info "loading data"
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 dt = read(hfile["dt"])
@@ -17,7 +17,7 @@ close(hfile)
 
 @info "opening centers"
 centerslist = []
-hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
+hfile = h5open(data_directory  * "/centers.hdf5", "r")
 for i in ProgressBar(eachindex(coarse_probabilities))
     centers = read(hfile["centers $i"])
     push!(centerslist, centers)

@@ -2,12 +2,12 @@ using HDF5, ProgressBars, MarkovChainHammer, AttractorConvergence, SparseArrays
 
 include("utils.jl")
 
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 
 @info "loading data"
-mcfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
-centers_hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
-eigenvalues_hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
+centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
+eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 
 all_compute = false # increase computation by a factor of 40
 
@@ -19,7 +19,7 @@ close(mcfile)
 close(centers_hfile)
 close(eigenvalues_hfile)
 
-# hfile = h5open(pwd() * data_directory  * "/temporal_autocovariance.hdf5", "w")
+# hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "w")
 Tfinal = 40
 numsteps = ceil(Int, Tfinal / dt) + 1
 q_runge_kutta_correlation = zeros(numsteps)
@@ -33,9 +33,9 @@ pf100_runge_kutta_correlation = zeros(numsteps100)
 # something strange happened with 7, so we skip it
 for i in ProgressBar(18:imax)
     println("On case $i")
-    mcfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
-    centers_hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
-    eigenvalues_hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+    mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
+    centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
+    eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 
     coarse_markov_chain = read(mcfile["coarse_markov_chains $i"])
     centers = read(centers_hfile["centers $i"])
@@ -48,7 +48,7 @@ for i in ProgressBar(18:imax)
     close(centers_hfile)
     close(eigenvalues_hfile)
 
-    hfile = h5open(pwd() * data_directory  * "/temporal_autocovariance.hdf5", "r+")
+    hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r+")
 
     N = length(coarse_markov_chain)
     N2 = N ÷ 2

@@ -1,29 +1,29 @@
 using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, SparseArrays
 using StateSpacePartitions
 
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 
 first_index = 1
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 dt = read(hfile["dt"])
 close(hfile)
 
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+hfile = h5open(data_directory  * "/embedding.hdf5", "r")
 coarse_markov_chain = read(hfile["coarse_markov_chains $first_index"])
 probability = read(hfile["probability"])
 coarse_probabilities = read(hfile["coarse_probabilities"])
 close(hfile)
 
-hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 tmp = [parse(Int, key[end-1:end]) for key in keys(hfile)]
 last_index = maximum(tmp)
 close(hfile)
 println("Picking up at index $last_index")
 
 for (old_index, probability) in ProgressBar(enumerate(coarse_probabilities[last_index+1:end]))
-    hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r+")
+    hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r+")
     index = last_index + old_index
-    nhfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+    nhfile = h5open(data_directory  * "/embedding.hdf5", "r")
     coarse_markov_chain = read(nhfile["coarse_markov_chains $index"])
     close(nhfile)
     N = length(coarse_markov_chain)

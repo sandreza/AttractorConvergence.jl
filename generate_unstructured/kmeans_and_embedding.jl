@@ -1,7 +1,7 @@
 using StateSpacePartitions, Graphs
 
 @info "loading data for kmeans"
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
@@ -37,7 +37,7 @@ for i in ProgressBar(eachindex(partitions))
 end
 
 @info "saving embedding"
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "w")
+hfile = h5open(data_directory  * "/embedding.hdf5", "w")
 hfile["markov_chain"] = partitions
 hfile["probability"] = p_min
 close(hfile)
@@ -55,7 +55,7 @@ for i in ProgressBar(eachindex(probabilities))
 end
 
 @info "saving coarse embeddings"
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r+")
+hfile = h5open(data_directory  * "/embedding.hdf5", "r+")
 hfile["coarse_probabilities"] = probabilities
 coarse_partitions = zeros(Int64, size(joined_timeseries)[2])
 for j in ProgressBar(eachindex(probabilities))
@@ -67,7 +67,7 @@ end
 close(hfile)
 ##
 @info "saving centers"
-hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "w")
+hfile = h5open(data_directory  * "/centers.hdf5", "w")
 for i in ProgressBar(eachindex(probabilities))
     centers_list = zeros(3, length(local_to_globals[i]))
     for j in eachindex(local_to_globals[i])

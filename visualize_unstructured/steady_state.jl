@@ -1,6 +1,6 @@
 @info "opening centers"
 centerslist = []
-hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
+hfile = h5open(data_directory  * "/centers.hdf5", "r")
 for i in ProgressBar(eachindex(coarse_probabilities))
     centers = read(hfile["centers $i"])
     push!(centerslist, centers)
@@ -8,14 +8,14 @@ end
 close(hfile)
 
 @info "loading data"
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 
 @info "grabbing embedding"
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+hfile = h5open(data_directory  * "/embedding.hdf5", "r")
 markov_chain = read(hfile["markov_chain"])
 coarse_markov_chain = read(hfile["coarse_markov_chains"])
 probability = read(hfile["probability"])

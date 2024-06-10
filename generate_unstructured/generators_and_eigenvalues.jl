@@ -2,25 +2,25 @@ using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, 
 using StateSpacePartitions
 
 first_index = 1
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 dt = read(hfile["dt"])
 close(hfile)
 
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+hfile = h5open(data_directory  * "/embedding.hdf5", "r")
 coarse_markov_chain = read(hfile["coarse_markov_chains $first_index"])
 probability = read(hfile["probability"])
 coarse_probabilities = read(hfile["coarse_probabilities"])
 close(hfile)
 
-hfile = h5open(pwd() * data_directory  * "/centers.hdf5", "r")
+hfile = h5open(data_directory  * "/centers.hdf5", "r")
 centers = read(hfile["centers $first_index"])
 close(hfile)
 
 @info "computing eigenvalues for small matrices"
 last_index = sum(coarse_probabilities .> 5e-4)
-hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "w")
+hfile = h5open(data_directory  * "/eigenvalues.hdf5", "w")
 for (index, probability) in ProgressBar(enumerate(coarse_probabilities[1:last_index]))
-    nhfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+    nhfile = h5open(data_directory  * "/embedding.hdf5", "r")
     coarse_markov_chain = read(nhfile["coarse_markov_chains $index"])
     close(nhfile)
     N = length(coarse_markov_chain)
@@ -62,9 +62,9 @@ close(hfile)
 @info "computing eigenvalues for large matrices"
 
 for (old_index, probability) in ProgressBar(enumerate(coarse_probabilities[last_index+1:end]))
-    hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r+")
+    hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r+")
     index = last_index + old_index
-    nhfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+    nhfile = h5open(data_directory  * "/embedding.hdf5", "r")
     coarse_markov_chain = read(nhfile["coarse_markov_chains $index"])
     close(nhfile)
     N = length(coarse_markov_chain)

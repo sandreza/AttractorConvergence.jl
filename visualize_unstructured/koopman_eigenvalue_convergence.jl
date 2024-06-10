@@ -2,9 +2,9 @@ using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, 
 using StateSpacePartitions, GLMakie
 @info "loading data"
 
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 figure_directory = "/unstructured_figures"
-hfile = h5open(pwd() * data_directory  * "/eigenvalues.hdf5", "r")
+hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 M = 25
 q_lambdas = zeros(M)
 pf1_lambdas = zeros(M)

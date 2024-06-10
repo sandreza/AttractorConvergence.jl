@@ -1,9 +1,9 @@
 using HDF5, GLMakie
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 figure_directory = "/unstructured_figures"
 @info "Loading data"
-e_hfile = h5open(pwd() * data_directory  * "/ensemble_mean_statistics.hdf5", "r")
-t_hfile = h5open(pwd() * data_directory  * "/time_mean_statistics.hdf5", "r")
+e_hfile = h5open(data_directory  * "/ensemble_mean_statistics.hdf5", "r")
+t_hfile = h5open(data_directory  * "/time_mean_statistics.hdf5", "r")
 
 ensemble_mean = zeros(25, 5)
 partition_number = zeros(25)
@@ -61,8 +61,8 @@ save(pwd() * figure_directory * "/cumulants_self_relative_error.png", fig)
 
 
 ##
-e_hfile = h5open(pwd() * data_directory  * "/ensemble_mean_statistics.hdf5", "r")
-t_hfile = h5open(pwd() * data_directory  * "/time_mean_statistics.hdf5", "r")
+e_hfile = h5open(data_directory  * "/ensemble_mean_statistics.hdf5", "r")
+t_hfile = h5open(data_directory  * "/time_mean_statistics.hdf5", "r")
 ensemble_mean = zeros(25, 5)
 partition_number = zeros(25)
 error_list = zeros(25, 5)

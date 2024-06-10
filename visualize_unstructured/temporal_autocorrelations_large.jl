@@ -1,15 +1,15 @@
 using HDF5, Printf
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 figure_directory = "unstructured_figures"
 using GLMakie
-hfile = h5open(pwd() * data_directory  * "/temporal_autocovariance.hdf5", "r")
+hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r")
 time_autocovariance = read(hfile["time mean autocovariance"])
 pf100_autocovariance_list = [read(hfile["ensemble mean autocovariance perron_frobenius 100 $i"]) for i in 8:25]
 pf10_autocovariance_list = [read(hfile["ensemble mean autocovariance perron_frobenius 10 $i"]) for i in 8:25]
 pf1_autocovariance_list = [read(hfile["ensemble mean autocovariance perron_frobenius 1 $i"]) for i in 8:25]
 generator_autocovariance_list = [read(hfile["ensemble mean autocovariance generator $i"]) for i in 8:25]
 close(hfile)
-e_hfile = h5open(pwd() * data_directory  * "/ensemble_mean_statistics.hdf5", "r")
+e_hfile = h5open(data_directory  * "/ensemble_mean_statistics.hdf5", "r")
 partition_numbers = [read(e_hfile["number of partitions $i"]) for i in 8:25]
 close(e_hfile)
 

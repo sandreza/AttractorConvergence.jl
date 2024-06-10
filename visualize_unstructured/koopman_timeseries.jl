@@ -1,21 +1,21 @@
 using HDF5, GLMakie, ProgressBars, Statistics
 @info "grabbing timeseries"
-data_directory = "/real_data"
+data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 tic = Base.time()
-hfile = h5open(pwd() * data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 
-hfile = h5open(pwd() * data_directory  * "/embedding.hdf5", "r")
+hfile = h5open(data_directory  * "/embedding.hdf5", "r")
 coarse_probabilities = read(hfile["coarse_probabilities"])
 close(hfile)
 toc = Base.time() 
 println("The amount of time that it took is $(toc - tic) seconds")
 
 @info "grabbing data"
-kthfile = h5open(pwd() * data_directory  * "/koopman_timeseries.hdf5", "r")
+kthfile = h5open(data_directory  * "/koopman_timeseries.hdf5", "r")
 q_modes = []
 pf1_modes = []
 pf10_modes = []
