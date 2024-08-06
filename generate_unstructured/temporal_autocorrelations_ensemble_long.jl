@@ -2,8 +2,6 @@ using HDF5, ProgressBars, MarkovChainHammer, AttractorConvergence, SparseArrays
 
 include("utils.jl")
 
-data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
-
 @info "loading data"
 mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
 centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")

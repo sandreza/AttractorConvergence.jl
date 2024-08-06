@@ -1,5 +1,3 @@
-data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
-
 dt_skip = 0.0001
 
 @info "loading data"

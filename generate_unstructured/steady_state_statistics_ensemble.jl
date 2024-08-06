@@ -1,6 +1,6 @@
 using HDF5, ProgressBars
 
-data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
+# data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 hfile = h5open(data_directory  * "/ensemble_mean_statistics.hdf5", "w")
 centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
 eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")

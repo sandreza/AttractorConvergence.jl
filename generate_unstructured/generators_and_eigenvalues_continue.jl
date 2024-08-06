@@ -1,7 +1,7 @@
 using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, SparseArrays
 using StateSpacePartitions
 
-data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
+# data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 
 first_index = 1
 hfile = h5open(data_directory  * "/lorenz.hdf5", "r")

@@ -7,12 +7,12 @@ s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 @info "starting k-means"
-p_min = 1e-6
+p_min = 1.5e-5
 @info "computing embedding"
 Nmax = 50 * round(Int, 1/ p_min)
 skip = maximum([round(Int, size(joined_timeseries)[2] / Nmax), 1])
 tic = Base.time()
-F, H, edge_information, parent_to_children, global_to_local, centers_list, CC, local_to_global = unstructured_tree(joined_timeseries[:, 1:skip:end], p_min; threshold = 1.4);
+F, H, edge_information, parent_to_children, global_to_local, centers_list, CC, local_to_global = unstructured_tree(joined_timeseries[:, 1:skip:end], p_min; threshold = 1.0);
 toc = Base.time() 
 println("time for kmeans: ", toc - tic, " seconds")
 
