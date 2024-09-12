@@ -1,4 +1,4 @@
-using HDF5, GLMakie, ProgressBars, Statistics
+using HDF5, CairoMakie, ProgressBars, Statistics
 @info "grabbing timeseries"
 data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 tic = Base.time()

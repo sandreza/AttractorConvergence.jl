@@ -1,4 +1,4 @@
-using HDF5, GLMakie
+using HDF5, CairoMakie
 data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 figure_directory = "/unstructured_figures"
 @info "Loading data"

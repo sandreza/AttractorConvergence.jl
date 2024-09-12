@@ -1,7 +1,7 @@
 using HDF5
 using ParallelKMeans
 using HDF5, MarkovChainHammer, ProgressBars 
-using GraphMakie, NetworkLayout,  GLMakie, Graphs, Printf
+using GraphMakie, NetworkLayout,  CairoMakie, Graphs, Printf
 using Printf, Random, SparseArrays
 
 Random.seed!(12345)

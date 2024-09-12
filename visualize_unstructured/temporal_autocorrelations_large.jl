@@ -1,7 +1,7 @@
 using HDF5, Printf
 data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 figure_directory = "unstructured_figures"
-using GLMakie
+using CairoMakie
 hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r")
 time_autocovariance = read(hfile["time mean autocovariance"])
 pf100_autocovariance_list = [read(hfile["ensemble mean autocovariance perron_frobenius 100 $i"]) for i in 8:25]

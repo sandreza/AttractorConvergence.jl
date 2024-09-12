@@ -1,5 +1,5 @@
 using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, SparseArrays
-using StateSpacePartitions, GLMakie
+using StateSpacePartitions, CairoMakie
 @info "loading data"
 
 data_directory = "/storage4/andre/attractor_convergence" * "/real_data"

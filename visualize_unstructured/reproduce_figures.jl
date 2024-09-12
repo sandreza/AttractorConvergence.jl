@@ -1,7 +1,7 @@
 using MarkovChainHammer, ProgressBars, LinearAlgebra
-using GLMakie, HDF5
+using CairoMakie, HDF5
 
-data_directory = "/test_data"
+data_directory = "/nobackup1/sandre/AttractorConvergence/data"
 
 figure_directory = pwd() * "/unstructured_figures"
 isdir(figure_directory) ? nothing : mkdir(figure_directory)

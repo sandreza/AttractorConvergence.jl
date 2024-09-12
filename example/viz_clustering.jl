@@ -1,4 +1,4 @@
-using HDF5, GraphMakie, NetworkLayout, MarkovChainHammer, ProgressBars, GLMakie, Graphs
+using HDF5, GraphMakie, NetworkLayout, MarkovChainHammer, ProgressBars, CairoMakie, Graphs
 using Printf, Random
 Random.seed!(12345)
 

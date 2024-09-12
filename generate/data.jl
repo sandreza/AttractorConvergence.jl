@@ -1,5 +1,5 @@
 using ParallelKMeans, HDF5
-using GLMakie, Revise
+using CairoMakie, Revise
 using MarkovChainHammer, AttractorConvergence
 using ProgressBars, LinearAlgebra, Statistics, Random
 using MarkovChainHammer.BayesianMatrix

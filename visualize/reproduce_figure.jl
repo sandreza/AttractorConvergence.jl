@@ -1,4 +1,4 @@
-using GLMakie, MarkovChainHammer.BayesianMatrix, HDF5, Statistics, ProgressBars
+using CairoMakie, MarkovChainHammer.BayesianMatrix, HDF5, Statistics, ProgressBars
 using LinearAlgebra, AttractorConvergence
 
 tic = time()

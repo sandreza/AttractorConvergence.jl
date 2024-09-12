@@ -1,5 +1,5 @@
 using MarkovChainHammer, HDF5, ProgressBars
-using GLMakie
+using CairoMakie
 
 import MarkovChainHammer.Utils: histogram
 eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")

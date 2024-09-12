@@ -1,4 +1,4 @@
-using GLMakie, AttractorConvergence, SparseArrays
+using CairoMakie, AttractorConvergence, SparseArrays
 import MarkovChainHammer.Utils: histogram
 using MarkovChainHammer.BayesianMatrix
 using MarkovChainHammer.TransitionMatrix: entropy
