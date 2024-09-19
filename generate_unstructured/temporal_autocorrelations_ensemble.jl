@@ -8,7 +8,7 @@ mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
 centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
 eigenvalues_hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
 
-all_compute = false # increase computation by a factor of 40
+all_compute = true # increase computation by a factor of 40
 
 coarse_markov_chain = read(mcfile["coarse_markov_chains 1"])
 dt = read(eigenvalues_hfile["generator dt 1"])
@@ -29,8 +29,7 @@ numsteps100 = (numsteps-1)÷100 + 1
 pf100_runge_kutta_correlation = zeros(numsteps100)
 
 @info "starting loop"
-# something strange happened with 7, so we skip it
-for i in ProgressBar(18:imax)
+for i in ProgressBar(1:imax)
     println("On case $i")
     mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
     centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")

@@ -1,57 +1,79 @@
-@info "opening centers"
-centerslist = []
-hfile = h5open(data_directory  * "/centers.hdf5", "r")
-for i in ProgressBar(eachindex(coarse_probabilities))
-    centers = read(hfile["centers $i"])
-    push!(centerslist, centers)
+using HDF5, ProgressBars, CairoMakie
+# data_directory = "/nobackup1/sandre/AttractorConvergence/data/"
+hfile = h5open(data_directory * "time_mean_statistics.hdf5", "r")
+xmoments = read(hfile["x moments"])
+xcumulants = read(hfile["x cumulants"])
+ymoments = read(hfile["y moments"])
+ycumulants = read(hfile["y cumulants"])
+zmoments = read(hfile["z moments"])
+zcumulants = read(hfile["z cumulants"])
+close(hfile)
+
+Npartitions = 20
+
+hfile = h5open(data_directory * "centers.hdf5", "r")
+centers = []
+for i in 1:Npartitions
+    center = read(hfile["centers $i"])
+    push!(centers, center)
+end
+close(hfile)
+hfile = h5open(data_directory * "eigenvalues.hdf5", "r")
+probabilities = []
+for i in 1:Npartitions
+    p = read(hfile["generator steady state $i"])
+    push!(probabilities, p)
 end
 close(hfile)
 
-@info "loading data"
-hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
-m_timeseries = read(hfile["timeseries"])
-s_timeseries = read(hfile["symmetrized timeseries"])
-joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
-close(hfile)
-
-@info "grabbing embedding"
-hfile = h5open(data_directory  * "/embedding.hdf5", "r")
-markov_chain = read(hfile["markov_chain"])
-coarse_markov_chain = read(hfile["coarse_markov_chains"])
-probability = read(hfile["probability"])
-coarse_probabilities = read(hfile["coarse_probabilities"])
-close(hfile)
-
-# compute transition matrix (should use only half the data)
-@info "computing transition matrices"
-Ps = []
-N = size(coarse_markov_chain)[1]
-N2 = N ÷ 2
-for i in ProgressBar(1:14)
-    P1 = perron_frobenius(coarse_markov_chain[1:N2, i])
-    P2 = perron_frobenius(coarse_markov_chain[N2+1:end, i])
-    P = (P1 + P2)/2
-    push!(Ps, P)
-end
-
-##
 observables = [i -> i[3]^j for j in 1:5]
-observables = [observables..., i -> (i[3] .* log(i[3]))]
-@info "computing observables from timeseries"
-observables_list = zeros(length(observables))
-for j in ProgressBar(eachindex(observables))
-    N = length(eachcol(joined_timeseries))
-    for state in ProgressBar(eachcol(joined_timeseries))
-        observables_list[j] += observables[j](state) / N
+@info "computing observables from model"
+
+observables_list_model = zeros(Npartitions, length(observables))
+for i in ProgressBar(1:Npartitions)
+    p = probabilities[i]
+    for j in eachindex(p)
+        for k in eachindex(observables)
+            observables_list_model[i, k] += observables[k](centers[i][:, j]) .* p[j]
+        end
     end
 end
 
+cumulants_list_model = similar(observables_list_model)
+cumulants_list_model[:, 1] = observables_list_model[:, 1]
+cumulants_list_model[:, 2] = observables_list_model[:, 2] - observables_list_model[:, 1].^2
+cumulants_list_model[:, 3] = observables_list_model[:, 3] - 3 * observables_list_model[:, 1] .* observables_list_model[:, 2] + 2 * observables_list_model[:, 1].^3
+cumulants_list_model[:, 4] = observables_list_model[:, 4] - 4 * observables_list_model[:, 1] .* observables_list_model[:, 3] - 3 * observables_list_model[:, 2].^2 + 12 * observables_list_model[:, 1].^2 .* observables_list_model[:, 2] - 6 * observables_list_model[:, 1].^4
+cumulants_list_model[:, 5] = observables_list_model[:, 5] - 5 * observables_list_model[:, 1] .* observables_list_model[:, 4] - 10 * observables_list_model[:, 2] .* observables_list_model[:, 3] + 20 * observables_list_model[:, 1].^2 .* observables_list_model[:, 3] + 30 * observables_list_model[:, 1] .* observables_list_model[:, 2].^2 - 60 * observables_list_model[:, 1].^3 .* observables_list_model[:, 2] + 24 * observables_list_model[:, 1].^5
+# cumulants_list_model[:, 6] = observables_list_model[:, 6] - 6 * observables_list_model[:, 1] .* observables_list_model[:, 5] - 15 * observables_list_model[:, 2] .* observables_list_model[:, 4] - 10 * observables_list_model[:, 3].^2 + 60 * observables_list_model[:, 1].^2 .* observables_list_model[:, 4] + 90 * observables_list_model[:, 1] .* observables_list_model[:, 2] .* observables_list_model[:, 3] - 120 * observables_list_model[:, 1].^3 .* observables_list_model[:, 3] - 120 * observables_list_model[:, 1].^2 .* observables_list_model[:, 2].^2 + 210 * observables_list_model[:, 1].^4 .* observables_list_model[:, 2] - 120 * (observables_list_model[:, 1] .^6)
+
+
+ms = 20
+ls = 40
+lw = 5
+labels = ["κ₁", "κ₂", "κ₃", "κ₄", "κ₅", "κ₆"]
+log10cumulantserror = log10.(abs.(cumulants_list_model .- reshape(zcumulants, (1, length(observables))))) .- log10.(abs.(reshape(zcumulants, (1, length(observables)))))
+log10partition_numbers = log10.([size(centers[i])[2] for i in 1:Npartitions])
+colors = [:red, :green, :blue, :orange, :purple, :cyan, :magenta, :black, :white]
+fig = Figure(resolution = (2000, 1500))
+ax = Axis(fig[1, 1]; xlabel = "log10(partitions)", ylabel = "log10(relative error)", xlabelsize = ls, ylabelsize = ls, xticklabelsize = ls, yticklabelsize = ls)
+for i in 1:5
+    scatter!(ax, log10partition_numbers, log10cumulantserror[:, i], color = (colors[i]), markersize = 20, label = labels[i])
+end
+axislegend(ax, position=:rt, framecolor=(:grey, 0.5), patchsize=(50, 50), markersize=100, labelsize=40)
+lines!(ax, log10partition_numbers, - log10partition_numbers .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = lw, label = "-1 slope")
+# lines!(ax, log10partition_numbers, - log10partition_numbers / 2 .- 0.5, color = (:black, 0.5), linestyle=:dashdot, linewidth = lw, label = "-1/2 slope")
+
+# figure_directory = pwd() * "/unstructured_figures"; figure_number = 3; save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+#=
+
 ##
+observables = [i -> i[3]^j for j in 1:5]
 @info "computing observables from model"
 Npartitions = 14
 observables_list_model = zeros(Npartitions, length(observables))
 for i in ProgressBar(1:Npartitions)
-    p = MarkovChainHammer.Utils.steady_state(Ps[i])
+    p = probabilities[i]
     for j in eachindex(p)
         for k in eachindex(observables)
             observables_list_model[i, k] += observables[k](centerslist[i][:, j]) .* p[j]
@@ -126,3 +148,4 @@ display(fig)
 
 
 
+=#

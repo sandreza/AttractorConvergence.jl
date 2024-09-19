@@ -92,6 +92,10 @@ else
     include("temporal_autocorrelations_timeseries.jl")
     taka = time()
     println("Time for temporal autocorrelations: ", (taka - tiki)/(60), " minutes")
+    tiki = time() 
+    include("temporal_autocorrelations_ensemble.jl")
+    taka = time()
+    println("Time for temporal autocorrelations: ", (taka - tiki)/(60), " minutes")
 end
 
 

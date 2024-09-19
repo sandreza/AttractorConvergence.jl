@@ -1,5 +1,10 @@
 using StateSpacePartitions, MarkovChainHammer
 
+hfile = h5open(data_directory * "temporal_autocovariance.hdf5", "r")
+zautocorrelation = read(hfile["time mean autocovariance"])
+close(hfile)
+
+#=
 include("utils.jl")
 
 hfile = h5open(data_directory  * "/embedding.hdf5", "r")
@@ -102,3 +107,4 @@ for i in 1:9
     scatter!(ax, ts, dt_perron_frobenius_correlations[i+5], color = (:blue, 0.5), markersize = 10)
 end
 display(fig2)
+=#

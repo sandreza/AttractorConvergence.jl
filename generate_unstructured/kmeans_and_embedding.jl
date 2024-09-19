@@ -7,7 +7,7 @@ s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 @info "starting k-means"
-p_min = 1.5e-5
+p_min = 1.3e-6
 @info "computing embedding"
 Nmax = 50 * round(Int, 1/ p_min)
 skip = maximum([round(Int, size(joined_timeseries)[2] / Nmax), 1])
