@@ -28,8 +28,16 @@ pf10_runge_kutta_correlation = zeros(numsteps10)
 numsteps100 = (numsteps-1)÷100 + 1
 pf100_runge_kutta_correlation = zeros(numsteps100)
 
+##
+hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r+")
+tmp = [key[end-1:end] for key in keys(hfile)]
+if length(tmp) > 2
+    istart = maximum(parse.(Int, sort(tmp)[1:end-2]))
+else
+    istart = 1
+end
 @info "starting loop"
-for i in ProgressBar(1:imax)
+for i in ProgressBar(istart:imax)
     println("On case $i")
     mcfile = h5open(data_directory  * "/embedding.hdf5", "r")
     centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")

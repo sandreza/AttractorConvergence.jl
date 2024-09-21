@@ -9,7 +9,7 @@ zmoments = read(hfile["z moments"])
 zcumulants = read(hfile["z cumulants"])
 close(hfile)
 
-Npartitions = 20
+Npartitions = 25
 
 hfile = h5open(data_directory * "centers.hdf5", "r")
 centers = []
