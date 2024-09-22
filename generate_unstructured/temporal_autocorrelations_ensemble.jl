@@ -32,10 +32,11 @@ pf100_runge_kutta_correlation = zeros(numsteps100)
 hfile = h5open(data_directory  * "/temporal_autocovariance.hdf5", "r+")
 tmp = [key[end-1:end] for key in keys(hfile)]
 if length(tmp) > 2
-    istart = maximum(parse.(Int, sort(tmp)[1:end-2]))
+    istart = maximum(parse.(Int, sort(tmp)[1:end-2])) + 1
 else
     istart = 1
 end
+close(hfile)
 @info "starting loop"
 for i in ProgressBar(istart:imax)
     println("On case $i")
@@ -60,7 +61,7 @@ for i in ProgressBar(istart:imax)
     N2 = N ÷ 2
 
     @info "calculating operators"
-    if length(p) < 4e4
+    if length(p) < 2e4
         if all_compute
             Qa = generator(coarse_markov_chain[1:N2]; dt = dt)
             Qb = generator(coarse_markov_chain[N2+1:end]; dt = dt)
