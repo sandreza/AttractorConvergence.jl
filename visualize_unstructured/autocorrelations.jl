@@ -8,7 +8,7 @@ perron_frobenius_1_autocorrelation = Vector{Float64}[]
 perron_frobenius_10_autocorrelation = Vector{Float64}[]
 perron_frobenius_100_autocorrelation = Vector{Float64}[]
 partition_number = Int64[]
-for i in [12, 16, 20, 24]
+for i in ([12, 16, 20, 24] .+1)
     g = read(hfile["ensemble mean autocovariance generator $i"])
     pf1 = read(hfile["ensemble mean autocovariance perron_frobenius 1 $i"])
     pf10 = read(hfile["ensemble mean autocovariance perron_frobenius 10 $i"])
