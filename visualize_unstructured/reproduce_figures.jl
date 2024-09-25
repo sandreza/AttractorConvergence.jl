@@ -9,7 +9,7 @@ isdir(figure_directory) ? nothing : mkdir(figure_directory)
 
 @info "creating figures"
 
-figure_number = 0
+figure_number = 1
 include("splitting.jl")
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
 println("done with ", figure_number)
