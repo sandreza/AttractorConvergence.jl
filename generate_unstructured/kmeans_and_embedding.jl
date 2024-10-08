@@ -1,4 +1,6 @@
 using StateSpacePartitions, Graphs
+using KernelAbstractions
+using KernelAbstractions: @kernel, @index
 
 @info "loading data for kmeans"
 hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
@@ -32,9 +34,14 @@ embedding = UnstructuredTree(global_to_local, centers_list, parent_to_children)
 
 partitions = zeros(Int64, size(joined_timeseries)[2])
 @info "computing partition trajectory"
-for i in ProgressBar(eachindex(partitions))
+@kernel function compute_partition_trajectory!(embedding, partitions, joined_timeseries)
+    i = @index(Global, Linear)
     @inbounds partitions[i] = embedding(joined_timeseries[:, i])
 end
+tic = Base.time()
+compute_partition_trajectory!(KernelAbstractions.CPU(), 256, length(partitions))(embedding, partitions, joined_timeseries)
+toc = Base.time()
+println("time for computing partition trajectory: ", toc - tic, " seconds")
 
 @info "saving embedding"
 hfile = h5open(data_directory  * "/embedding.hdf5", "w")
