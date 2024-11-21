@@ -48,19 +48,19 @@ for i in eachindex(generator_autocorrelation)
     if i == 4
         ax = Axis(fig[i, 1]; 
                   xlabel = L"\text{time}", 
-                  ylabel = L"\text{Cells = }" * string(partition_number[i]),
+                  ylabel = L"\text{Cells = } %$(partition_number[i])",
                   xticks = xticksvisible,
                   yticks = yticksvisible)
     elseif i == 1
         ax = Axis(fig[i, 1]; title = L"\text{Generator}", 
-                  ylabel = L"\text{Cells = }" * string(partition_number[i]),
+                  ylabel = L"\text{Cells = } %$(partition_number[i])",
                   xticks = xticksinvisible,
                   yticks = yticksvisible)
     else
         ax = Axis(fig[i, 1]; 
-                  ylabel = L"\text{Cells = }" * string(partition_number[i]),
+                  ylabel = L"\text{Cells = } %$(partition_number[i])",
                   xticks = xticksinvisible,
-                  yticks = yticksinvisible)
+                  yticks = yticksvisible)
     end
     lines!(ax, truth_ts, zautocorrelation, color=(:blue, op1), linewidth=lw)
     lines!(ax, generator_ts, generator_autocorrelation[i], color=(:red, op2), linewidth=lw)
@@ -69,13 +69,13 @@ for i in eachindex(generator_autocorrelation)
 end
 for i in eachindex(perron_frobenius_1_autocorrelation)
     if i == 4
-        ax = Axis(fig[i, 2]; xlabel = L"time",
-                  xticks = xticksinvisible,
+        ax = Axis(fig[i, 2]; xlabel = L"\text{time}",
+                  xticks = xticksvisible,
                   yticks = yticksinvisible)
     elseif i == 1
         ax = Axis(fig[i, 2]; title = L"\text{Perron-Frobenius }(\tau = 10^{-3})",
                   xticks = xticksinvisible,
-                  yticks = yticksvisible)
+                  yticks = yticksinvisible)
     else
         ax = Axis(fig[i, 2],
                   xticks = xticksinvisible,
@@ -89,12 +89,12 @@ end
 for i in eachindex(perron_frobenius_10_autocorrelation)
     if i == 4
         ax = Axis(fig[i, 3]; xlabel = L"\text{time}",
-                  xticks = xticksinvisible,
+                  xticks = xticksvisible,
                   yticks = yticksinvisible)
     elseif i == 1
         ax = Axis(fig[i, 3]; title = L"\text{Perron-Frobenius }(\tau = 10^{-3})",
                   xticks = xticksinvisible,
-                  yticks = yticksvisible)
+                  yticks = yticksinvisible)
     else
         ax = Axis(fig[i, 3],
                   xticks = xticksinvisible,
@@ -106,19 +106,17 @@ for i in eachindex(perron_frobenius_10_autocorrelation)
     ylims!(ax, zautomin, zautomax)
 end
 for i in eachindex(perron_frobenius_100_autocorrelation)
-    xticks = 
-
     if i == 4
         ax = Axis(fig[i, 4]; xlabel = L"\text{time}",
                   xticks = xticksvisible,
                   yticks = yticksinvisible)
     elseif i == 1
         ax = Axis(fig[i, 4]; title = L"\text{Perron-Frobenius }(\tau = 10^{-1})",
-                  xticks = xticksvisible,
-                  yticks = yticksvisible)
+                  xticks = xticksinvisible,
+                  yticks = yticksinvisible)
     else
         ax = Axis(fig[i, 4],
-                  xticks = xticksvisible,
+                  xticks = xticksinvisible,
                   yticks = yticksinvisible)
     end
     lines!(ax, truth_ts, zautocorrelation, color=(:blue, op1), linewidth=lw)
