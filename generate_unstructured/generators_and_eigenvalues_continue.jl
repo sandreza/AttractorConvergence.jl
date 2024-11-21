@@ -1,5 +1,6 @@
 using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, SparseArrays
 using StateSpacePartitions
+using KernelAbstractions
 
 # data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 

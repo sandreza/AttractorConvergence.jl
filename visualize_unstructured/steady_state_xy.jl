@@ -57,25 +57,32 @@ cumulants_list_model[:, 5+5] = observables_list_model[:, 5+5] - 5 * observables_
 ms = 20
 ls = 40
 lw = 5
-labels = ["x κ₁", "x κ₂", " x κ₃", "x κ₄", "x κ₅", "y κ₁", "y κ₂", "y κ₃", "y κ₄", "y κ₅"]
 xycumulants = vcat(xcumulants, ycumulants)
 log10cumulantserror = log10.(abs.(cumulants_list_model .- reshape(xycumulants, (1, length(observables))))) .- log10.(abs.(reshape(xycumulants, (1, length(observables)))))
-log10partition_numbers = log10.([size(centers[i])[2] for i in 1:Npartitions])
+log10partitions= log10.([size(centers[i])[2] for i in 1:Npartitions])
 colors = [:red, :green, :blue, :orange, :purple, :red, :green, :blue, :orange, :purple]
 colors[2] = :red 
 colors[4] = :green
 colors[7] = :blue
 colors[9] = :orange
-fig = Figure(resolution = (2000, 1500))
-ax = Axis(fig[1, 1]; xlabel = "log10(partitions)", ylabel = "log10(relative error)", xlabelsize = ls, ylabelsize = ls, xticklabelsize = ls, yticklabelsize = ls)
-for i in 2:2:5
-    scatter!(ax, log10partition_numbers, log10cumulantserror[:, i], color = (colors[i]), markersize = 20, label = labels[i])
-end
-for i in 7:2:10
-    scatter!(ax, log10partition_numbers, log10cumulantserror[:, i], color = (colors[i]), markersize = 20, label = labels[i])
-end
-axislegend(ax, position=:rt, framecolor=(:grey, 0.5), patchsize=(50, 50), markersize=100, labelsize=40)
-lines!(ax, log10partition_numbers, - log10partition_numbers .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = lw, label = "-1 slope")
+fig = Figure(resolution = (750, 400), fontsize = 18)
+ax = Axis(fig[1, 1]; 
+          xlabel = L"\text{Partitions}", 
+          ylabel = L"\text{Relative error}",
+          title  = L"\text{Cumulants of }x\text{ and }y",
+          yticks = ([-6, -4, -2, 0], [L"10^{-6}", L"10^{-4}", L"10^{-2}", L"10^{0}"]),
+          xticks = ([2, 4, 6], [L"10^2", L"10^4", L"10^6"]))
 
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 2], markersize = 10, marker = '●',      linewidth = 0.3, color = colors[2], label = L"x - \kappa_2")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 4], markersize = 10, marker = '◆',      linewidth = 0.3, color = colors[4], label = L"x - \kappa_4")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 7], markersize = 10, marker = '■',      linewidth = 0.3, color = colors[7], label = L"y - \kappa_2")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 9], markersize = 10, marker = :hexagon, linewidth = 0.3, color = colors[9], label = L"y - \kappa_4")
 
-# figure_directory = pwd() * "/unstructured_figures"; figure_number = 4; save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
+axislegend(ax, position=:rt, framecolor=(:grey, 0.5), framevisible = false) 
+lines!(ax, log10partitions, - log10partitions .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = 0.5)
+# text!(ax, log10partitions[10], - log10partitions[10] .+ 0.6, text = L"\text{Linear convergence}", color = :black, rotation = - π/(8.95), fontsize = 15)
+
+figure_directory = pwd() * "/unstructured_figures"; figure_number = 4; 
+
+save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)

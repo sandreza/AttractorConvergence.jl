@@ -33,10 +33,10 @@ end
 =#
 
 
-hfile = h5open(data_directory  * "/koopman_timeseries.hdf5", "r")
+hfile = h5open("./data/koopman_timeseries.hdf5", "r")
 gap = gap ÷ 10
 koopman_timeseries = Vector{Float64}[]
-for (j, i) in ProgressBar(enumerate(([12, 16, 20] .+5)))
+for (j, i) in ProgressBar(enumerate(([12, 16, 20] .+ 4)))
     push!(koopman_timeseries, read(hfile["generator koopman timeseries $i"])[1:gap:end])
 end
 close(hfile)

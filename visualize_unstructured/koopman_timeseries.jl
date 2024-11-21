@@ -1,6 +1,7 @@
 using MarkovChainHammer, ProgressBars, LinearAlgebra
 using CairoMakie, HDF5
-data_directory = "/nobackup1/sandre/AttractorConvergence/data/"
+
+data_directory = "./data/"
 
 hfile = h5open(data_directory * "koopman_timeseries.hdf5", "r")
 centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
@@ -10,7 +11,7 @@ perron_frobenius_1_koopman_timeseries = Vector{Float64}[]
 perron_frobenius_10_koopman_timeseries = Vector{Float64}[]
 perron_frobenius_100_koopman_timeseries = Vector{Float64}[]
 partition_number = Int64[]
-for i in ([12, 16, 20] .+5)
+for i in ([12, 16, 20] .+4)
     gkt = read(hfile["generator koopman timeseries $i"])
     pf1 = read(hfile["perron_frobenius 1 koopman timeseries $i"])
     pf10 = read(hfile["perron_frobenius 10 koopman timeseries $i"])
