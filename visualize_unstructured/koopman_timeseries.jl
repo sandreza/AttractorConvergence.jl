@@ -1,6 +1,8 @@
 using MarkovChainHammer, ProgressBars, LinearAlgebra
 using CairoMakie, HDF5
 
+CairoMakie.activate!()
+
 data_directory = "./data/"
 
 hfile = h5open(data_directory * "koopman_timeseries.hdf5", "r")
@@ -33,6 +35,14 @@ hfile = h5open(data_directory * "lorenz.hdf5", "r")
 lorenz_timeseries = read(hfile["timeseries"])
 close(hfile)
 
+xvisible     = ([0, 5, 10, 15, 20],    [L"0", L"5", L"10", L"15", L"20"])
+xinvisible   = ([0, 5, 10, 15, 20],    ["", "", "", "", ""])
+yPFvisible   = ([-1, -0.5, 0, 0.5, 1], [L"-1", L"-0.5", L"0", L"0.5", L"1"])
+
+ytrajvisible = [([-20, -10, 0, 10, 20], [L"-20", L"-10", L"0", L"10", L"20"]),
+                ([-20, -10, 0, 10, 20], [L"-20", L"-10", L"0", L"10", L"20"]),
+                ([10, 20, 30, 40], [L"10", L"20", L"30", L"40"])]
+
 colors = [:red, :purple, :blue]
 inds = 1:1:2001
 sign_ind = 1600
@@ -41,35 +51,67 @@ lw = 1
 op = 0.7
 ts = (collect(inds) .-1) * 1e-2
 fig = Figure(resolution = (1000, 500)) 
-ax = Axis(fig[1,1]; xlabel = L"\text{time}", ylabel = L"\text{Koopman Eigenfunction}", title = L"\text{Generator}")
+ax = Axis(fig[1,1]; 
+          xlabel = "", 
+          ylabel = L"\text{Koopman Eigenfunction}", 
+          title  = L"\text{Generator}",
+          xticks = xinvisible,
+          yticks = yPFvisible)
 for (i, kts) in enumerate(generator_koopman_timeseries)
     kts = sign(kts[inds][sign_ind]) .* kts
     kts  = kts ./ maximum(abs.(kts[inds]))
-    lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw, label = L"\text{Cells = }%$(partition_number[i])")
+    lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw)
+    scatter!(ax, ts[501], kts[501], color = :green, markersize = 10)
     ylims!(ax, -1.1, 1.1)
 end
-axislegend(ax, position=:lt, framecolor=(:grey, 0.5), patchsize=(8,8), labelsize=ls)
-ax = Axis(fig[1,2]; xlabel = L"\text{time}", ylabel = L"\text{Koopman Eigenfunction}", title = "\text{Perron-Frobenius }(\tau = 10^{-3})")
+ax = Axis(fig[1,2]; 
+          xlabel = "", 
+          ylabel = L"\text{Koopman Eigenfunction}", 
+          title  = L"\text{Perron-Frobenius }(\tau = 10^{-3})",
+          xticks = xinvisible,
+          yticks = yPFvisible)
 for (i, kts) in enumerate(perron_frobenius_1_koopman_timeseries)
     kts = sign(kts[inds][sign_ind]) .* kts
     kts  = kts ./ maximum(abs.(kts[inds]))
     lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw)
+    scatter!(ax, ts[501], kts[501], color = :green, markersize = 10)
     ylims!(ax, -1.1, 1.1)
 end
-hideydecorations!(ax)
-ax = Axis(fig[1, 3]; xlabel = L"\text{time}", ylabel = L"\text{Koopman Eigenfunction}", title = "\text{Perron-Frobenius }(\tau = 10^{-2})")
+ax = Axis(fig[1, 3]; 
+          xlabel = "", 
+          ylabel = L"\text{Koopman Eigenfunction}", 
+          title  = L"\text{Perron-Frobenius }(\tau = 10^{-2})",
+          xticks = xinvisible,
+          yticks = yPFvisible)
+          
+lines = []
 for (i, kts) in enumerate(perron_frobenius_10_koopman_timeseries)
     kts = sign(kts[inds][sign_ind]) .* kts
     kts  = kts ./ maximum(abs.(kts[inds]))
-    lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw)
+    if i == 3
+        push!(lines, lines!(ax, ts, - kts[inds], color = (colors[i], op), linewidth = lw))
+        scatter!(ax, ts[501], - kts[501], color = :green, markersize = 10)
+    else
+        push!(lines, lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw))
+        scatter!(ax, ts[501], kts[501], color = :green, markersize = 10)
+    end
     ylims!(ax, -1.1, 1.1)
 end
-hideydecorations!(ax)
 
+Legend(fig[1, 4],
+    lines,
+    [L"\text{Cells = }%$(partition_number[i])" for i in 1:3]
+)
+    
 titles = ["x", "y", "z"]
 for i in 1:3 
-    ax = Axis(fig[2, i]; ylabel = L"%$(titles[i]) trajectory", xlabel = L"\text{time}")
+    ax = Axis(fig[2, i]; 
+              ylabel = L"%$(titles[i]) - \text{trajectory}", 
+              xlabel = L"\text{time}",
+              xticks = xvisible,
+              yticks = ytrajvisible[i])
     lines!(ax, ts, lorenz_timeseries[i, 1:10:end][inds], color = :black)
+    scatter!(ax, ts[501], lorenz_timeseries[i, 1:10:end][501], color = :green, markersize = 10)
 end
 
 figure_directory = pwd() * "/unstructured_figures"; figure_number = 8; 
