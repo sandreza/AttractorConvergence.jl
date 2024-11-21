@@ -10,7 +10,7 @@ perron_frobenius_1_autocorrelation = Vector{Float64}[]
 perron_frobenius_10_autocorrelation = Vector{Float64}[]
 perron_frobenius_100_autocorrelation = Vector{Float64}[]
 partition_number = Int64[]
-for i in ([12, 16, 20, 24] .+1)
+for i in ([12, 16, 20, 24] .+ 1)
     g = read(hfile["ensemble mean autocovariance generator $i"])
     pf1 = read(hfile["ensemble mean autocovariance perron_frobenius 1 $i"])
     pf10 = read(hfile["ensemble mean autocovariance perron_frobenius 10 $i"])
@@ -38,11 +38,13 @@ generator_ts = range(0, 40, length= length(generator_autocorrelation[1]))
 perron_frobenius_1_ts = range(0, 40, length= length(perron_frobenius_1_autocorrelation[1]))
 perron_frobenius_10_ts = range(0, 40, length= length(perron_frobenius_10_autocorrelation[1]))
 perron_frobenius_100_ts = range(0, 40, length= length(perron_frobenius_100_autocorrelation[1]))
+
+xticksvisible   = ([0, 5, 10, 15, 20], [L"0", L"5", L"10", L"15", L"20"])
+xticksinvisible = ([0, 5, 10, 15, 20], ["", "", "", "", ""])
+yticksvisible   = ([-50, -25, 0, 25, 50, 75], [L"-50", L"-25", L"0", L"25", L"50", L"75"])
+yticksinvisible = ([-50, -25, 0, 25, 50, 75], ["", "", "", "", "", ""])
+
 for i in eachindex(generator_autocorrelation)
-    xticksvisible = ([0, 5, 10, 15, 20], [L"0", L"5", L"10", L"15", L"20"])
-    xticksinvisible = ([0, 5, 10, 15, 20], ["", "", "", "", ""])
-    yticksvisible = ([-50, -25, 0, 25, 50, 75], [L"-50", L"-25", L"0", L"25", L"50", L"75"])
-    yticksinvisible = ([-50, -25, 0, 25, 50, 75], ["", "", "", "", "", ""])
     if i == 4
         ax = Axis(fig[i, 1]; 
                   xlabel = L"\text{time}", 
