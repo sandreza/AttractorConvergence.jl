@@ -1,5 +1,5 @@
 using StateSpacePartitions, MarkovChainHammer
-using HDF5, GLMakie
+using HDF5, CairoMakie
 
 data_directory = "data/"
 hfile = h5open(data_directory * "temporal_autocovariance.hdf5", "r")
@@ -125,4 +125,7 @@ for i in eachindex(perron_frobenius_100_autocorrelation)
     ylims!(ax, zautomin, zautomax)
 end
 
-save("unstructured_figures" * "/Figure5.png", fig)
+figure_directory = pwd() * "/unstructured_figures"; figure_number = 6; 
+
+save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
