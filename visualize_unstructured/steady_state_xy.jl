@@ -59,7 +59,7 @@ ls = 40
 lw = 5
 xycumulants = vcat(xcumulants, ycumulants)
 log10cumulantserror = log10.(abs.(cumulants_list_model .- reshape(xycumulants, (1, length(observables))))) .- log10.(abs.(reshape(xycumulants, (1, length(observables)))))
-log10partitions= log10.([size(centers[i])[2] for i in 1:Npartitions])
+log10partitions = log10.([size(centers[i])[2] for i in 1:Npartitions])
 colors = [:red, :green, :blue, :orange, :purple, :red, :green, :blue, :orange, :purple]
 colors[2] = :red 
 colors[4] = :green
@@ -67,7 +67,7 @@ colors[7] = :blue
 colors[9] = :orange
 fig = Figure(resolution = (750, 400), fontsize = 18)
 ax = Axis(fig[1, 1]; 
-          xlabel = L"\text{Partitions}", 
+          xlabel = L"\text{Cells}", 
           ylabel = L"\text{Relative error}",
           title  = L"\text{Cumulants of }x\text{ and }y",
           yticks = ([-6, -4, -2, 0], [L"10^{-6}", L"10^{-4}", L"10^{-2}", L"10^{0}"]),
@@ -80,7 +80,6 @@ scatterlines!(ax, log10partitions, log10cumulantserror[:, 9], markersize = 10, m
 
 axislegend(ax, position=:rt, framecolor=(:grey, 0.5), framevisible = false) 
 lines!(ax, log10partitions, - log10partitions .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = 0.5)
-# text!(ax, log10partitions[10], - log10partitions[10] .+ 0.6, text = L"\text{Linear convergence}", color = :black, rotation = - π/(8.95), fontsize = 15)
 
 figure_directory = pwd() * "/unstructured_figures"; figure_number = 4; 
 
