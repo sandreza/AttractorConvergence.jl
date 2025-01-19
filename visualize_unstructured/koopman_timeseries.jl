@@ -14,7 +14,7 @@ perron_frobenius_10_koopman_timeseries  = Vector{Float64}[]
 perron_frobenius_100_koopman_timeseries = Vector{Float64}[]
 partition_number = Int64[]
 
-for i in ([12, 16, 21] .+ 4)
+for i in ([12, 16, 20] .+ 4)
     gkt   = read(hfile["generator koopman timeseries $i"])
     pf1   = read(hfile["perron_frobenius 1 koopman timeseries $i"])
     pf10  = read(hfile["perron_frobenius 10 koopman timeseries $i"])
@@ -41,7 +41,7 @@ yPFvisible   = ([-1, -0.5, 0, 0.5, 1], [L"-1", L"-0.5", L"0", L"0.5", L"1"])
 
 ytrajvisible = [([-20, -10, 0, 10, 20], [L"-20", L"-10", L"0", L"10", L"20"]),
                 ([-20, -10, 0, 10, 20], [L"-20", L"-10", L"0", L"10", L"20"]),
-                ([10, 20, 30, 40], [L"10", L"20", L"30", L"40"])]
+                ([10, 20, 30, 40],      [L"10", L"20", L"30", L"40"])]
 
 colors = [:red, :purple, :blue]
 inds = 1:1:2001
@@ -50,7 +50,7 @@ ls = 8
 lw = 1
 op = 0.7
 ts = (collect(inds) .-1) * 1e-2
-fig = Figure(resolution = (1000, 500)) 
+fig = Figure(size = (1000, 500)) 
 ax = Axis(fig[1,1]; 
           xlabel = "", 
           ylabel = L"\text{Koopman Eigenfunction}", 
@@ -64,7 +64,9 @@ for (i, kts) in enumerate(generator_koopman_timeseries)
     scatter!(ax, ts[501], kts[501], color = :green, markersize = 10)
     ylims!(ax, -1.1, 1.1)
 end
-axislegend(ax, position=:lt, fontsize=ls, boxvisible=false)
+# axislegend(ax, position=:ct, framevisible=false)
+
+Legend(fig[1, 4], ax, L"\text{Cells}") # , lines, [L"%$(partition_number[i])" for i in 1:3])
 
 ax = Axis(fig[1,2]; 
           xlabel = "", 
@@ -85,7 +87,7 @@ ax = Axis(fig[1, 3];
           title  = L"\text{Perron-Frobenius }(\tau = 10^{-2})",
           xticks = xinvisible,
           yticks = yPFvisible)
-          
+
 lines = []
 for (i, kts) in enumerate(perron_frobenius_10_koopman_timeseries)
     kts = sign(kts[inds][sign_ind]) .* kts
