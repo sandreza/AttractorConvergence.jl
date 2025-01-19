@@ -14,7 +14,7 @@ perron_frobenius_10_koopman_timeseries  = Vector{Float64}[]
 perron_frobenius_100_koopman_timeseries = Vector{Float64}[]
 partition_number = Int64[]
 
-for i in ([12, 16, 20] .+ 4)
+for i in ([12, 16, 21] .+ 4)
     gkt   = read(hfile["generator koopman timeseries $i"])
     pf1   = read(hfile["perron_frobenius 1 koopman timeseries $i"])
     pf10  = read(hfile["perron_frobenius 10 koopman timeseries $i"])
