@@ -11,7 +11,7 @@ Random.seed!(12345)
 tic = time()
 
 # create data directory if it's not there
-data_directory = "/nobackup1/sandre/AttractorConvergence/data"
+data_directory = pwd() * "/data"
 isdir(data_directory ) ? nothing : mkdir(data_directory )
 
 ##

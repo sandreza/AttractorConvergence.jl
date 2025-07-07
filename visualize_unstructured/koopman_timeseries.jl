@@ -4,6 +4,7 @@ using CairoMakie, HDF5
 CairoMakie.activate!()
 
 data_directory = "./data/"
+data_directory = "/nobackup1/sandre/AttractorConvergence/data/"
 
 hfile = h5open(data_directory * "koopman_timeseries.hdf5", "r")
 centers_hfile = h5open(data_directory  * "/centers.hdf5", "r")
@@ -92,13 +93,8 @@ lines = []
 for (i, kts) in enumerate(perron_frobenius_10_koopman_timeseries)
     kts = sign(kts[inds][sign_ind]) .* kts
     kts  = kts ./ maximum(abs.(kts[inds]))
-    if i == 3
-        push!(lines, lines!(ax, ts, - kts[inds], color = (colors[i], op), linewidth = lw))
-        scatter!(ax, ts[501], - kts[501], color = :green, markersize = 10)
-    else
-        push!(lines, lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw))
-        scatter!(ax, ts[501], kts[501], color = :green, markersize = 10)
-    end
+    push!(lines, lines!(ax, ts, kts[inds], color = (colors[i], op), linewidth = lw))
+    scatter!(ax, ts[501], kts[501], color = :green, markersize = 10)
     ylims!(ax, -1.1, 1.1)
 end
     
