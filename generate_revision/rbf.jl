@@ -9,8 +9,11 @@ sigma = maximum(min_distances)
 sigma_2 = sigma/10
 sigma_3 = mean(min_distances)
 
+tic = Base.time()
 radial_basis_functions = exp.(-kmeans_distances.^2 / (2 * sigma^2))
 normalized_radial_basis_functions = radial_basis_functions ./ sum(radial_basis_functions, dims=1)
+toc = Base.time()
+@info "time for rbf: ", toc - tic, " seconds"
 
 radial_basis_functions_2 = exp.(-kmeans_distances.^2 / (2 * (sigma_2)^2))
 normalized_radial_basis_functions_2 = radial_basis_functions_2 ./ sum(radial_basis_functions_2, dims=1)
