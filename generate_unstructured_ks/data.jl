@@ -11,21 +11,10 @@ tic = time()
 ticci = time()
 
 # create data directory if it's not there
-data_directory = "./data"
+data_directory = "./data_ks"
 isdir(data_directory ) ? nothing : mkdir(data_directory)
 
-##
-# generate Lorenz data
-if isfile(data_directory  * "/lorenz.hdf5") 
-    @info "lorenz data already exists. skipping data generation"
-else
-    @info "generating Lorenz data"
-    tiki = time()
-    include("lorenz.jl")
-    taka = time()
-    println("Time for Lorenz data generation: ", (taka - tiki)/(60), " minutes")
-end
-##
+
 include("utils.jl")
 ##
 if isfile(data_directory  * "/embedding.hdf5") 
@@ -52,6 +41,7 @@ else
     println("Time for eigenvalue data generation: ", (taka - tiki)/(60), " minutes")
 end
 ##
+#=
 if isfile(data_directory  * "/koopman_timeseries.hdf5") 
     @info "eigenvalue data already exists. skipping data generation"
 else
@@ -97,8 +87,7 @@ else
     taka = time()
     println("Time for temporal autocorrelations: ", (taka - tiki)/(60), " minutes")
 end
-
-
+=#
 
 tacca = time()
 

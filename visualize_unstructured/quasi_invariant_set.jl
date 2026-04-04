@@ -1,3 +1,6 @@
+using ProgressBars, CairoMakie
+CairoMakie.activate!()
+
 @info "loading data"
 gap = 100
 hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
@@ -7,7 +10,6 @@ joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Pur
 close(hfile)
 
 #=
-
 hfile = h5open(data_directory  * "/koopman_timeseries.hdf5", "r")
 gap = gap ÷ 10
 koopman_timeseries = Vector{Float64}[]
@@ -32,18 +34,22 @@ for i in 1:4
 end
 =#
 
-
-hfile = h5open(data_directory  * "/koopman_timeseries.hdf5", "r")
+hfile = h5open("./data/koopman_timeseries.hdf5", "r")
 gap = gap ÷ 10
 koopman_timeseries = Vector{Float64}[]
-for (j, i) in ProgressBar(enumerate(([12, 16, 20] .+5)))
+for (j, i) in ProgressBar(enumerate(([12, 16, 20] .+ 4)))
     push!(koopman_timeseries, read(hfile["generator koopman timeseries $i"])[1:gap:end])
 end
 close(hfile)
 
 set_theme!(backgroundcolor=:white)
 xmax_ind = argmax(joined_timeseries[1, :])
-fig = Figure(resolution=(300, 100) .* 4 )
+fig = Figure(resolution=(300, 100) .* 4)
+
+hfile = h5open(data_directory * "lorenz.hdf5", "r")
+lorenz_timeseries = read(hfile["timeseries"])
+close(hfile)
+
 for i in 1:3
     ii = (i - 1) ÷ 3 + 1
     jj = (i - 1) % 3 + 1
@@ -51,8 +57,13 @@ for i in 1:3
     koopman_mode = koopman_timeseries[i]
     koopman_mode .*= sign.(koopman_mode[xmax_ind])
     upper_quantile = quantile(koopman_mode, 0.96)
+    star_point = lorenz_timeseries[:, 1:10:end][:, 501]
     scatter!(ax, joined_timeseries, color=koopman_mode, colormap=:balance, markersize=5, colorrange = (-upper_quantile, upper_quantile))
+    scatter!(ax, star_point..., color=:green, markersize=15) #, marker=:star5)
     rotate_cam!(ax.scene, (0.0, -10.5, 0.0))
 end
 
-# save("unstructured_figures" * "/Figure2.png", fig)
+figure_directory = pwd() * "/unstructured_figures"; figure_number = 7; 
+
+save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)

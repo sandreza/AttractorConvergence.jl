@@ -1,11 +1,8 @@
 using HDF5, MarkovChainHammer, ProgressBars, LinearAlgebra, Statistics, Random, SparseArrays
 using StateSpacePartitions
-using KernelAbstractions
-
-# data_directory = "/storage4/andre/attractor_convergence" * "/real_data"
 
 first_index = 1
-hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/ks.hdf5", "r")
 dt = read(hfile["dt"])
 close(hfile)
 
@@ -15,11 +12,50 @@ probability = read(hfile["probability"])
 coarse_probabilities = read(hfile["coarse_probabilities"])
 close(hfile)
 
-hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r")
-tmp = [parse(Int, key[end-1:end]) for key in keys(hfile)]
-last_index = maximum(tmp)
+@info "computing eigenvalues for small matrices"
+last_index = sum(coarse_probabilities .> 5e-4)
+hfile = h5open(data_directory  * "/eigenvalues.hdf5", "w")
+for (index, probability) in ProgressBar(enumerate(coarse_probabilities[1:last_index]))
+    nhfile = h5open(data_directory  * "/embedding.hdf5", "r")
+    coarse_markov_chain = read(nhfile["coarse_markov_chains $index"])
+    close(nhfile)
+    N = length(coarse_markov_chain)
+    N2 = N ÷ 2
+    Q1 = generator(coarse_markov_chain[1:N2]; dt = dt)
+    Q2 = generator(coarse_markov_chain[N2+1:end]; dt = dt)
+    Q = (Q1 + Q2)/2
+    Λᵀ, W = eigen(Q')
+    Λ, V = eigen(Q)
+    p = real.(V[:, end])
+    p = p ./ sum(p)
+    hfile["generator steady state $index"] = p
+    hfile["generator eigenvalues $index"] = Λ
+    hfile["generator dt $index"] = dt
+    koopman_index = argmin(abs.(imag.(reverse(Λ)[2:end-1]))) # first non-zero eigenvalue with zero imaginary part
+    hfile["generator koopman index $index"] = koopman_index
+    hfile["generator koopman eigenvalue $index"] = real(Λ[end-koopman_index])
+    hfile["generator koopman eigenvector $index"] = real.(W[:, end-koopman_index])
+
+    for k in [1, 10, 100]
+        P1 = perron_frobenius(coarse_markov_chain[1:N2]; step = k)
+        P2 = perron_frobenius(coarse_markov_chain[N2+1:end]; step = k)
+        P = (P1 + P2)/2
+        Λᵀ, W = eigen(P')
+        Λ, V = eigen(P)
+        p = real.(V[:, end])
+        p = p ./ sum(p)
+        hfile["perron_frobenius $k steady state $index"] = p
+        hfile["perron_frobenius $k eigenvalues $index"] = Λ
+        hfile["perron_frobenius $k dt $index"] = k * dt
+        koopman_index = argmin(abs.(imag.(reverse(Λ)[2:end-1]))) # first non-zero eigenvalue with zero imaginary part
+        hfile["perron_frobenius $k koopman index $index"] = koopman_index
+        hfile["perron_frobenius $k koopman eigenvalue $index"] = real(Λ[end-koopman_index])
+        hfile["perron_frobenius $k koopman eigenvector $index"] = real.(W[:, end-koopman_index])
+    end
+end
 close(hfile)
-println("Picking up at index $last_index")
+
+@info "computing eigenvalues for large matrices"
 
 for (old_index, probability) in ProgressBar(enumerate(coarse_probabilities[last_index+1:end]))
     hfile = h5open(data_directory  * "/eigenvalues.hdf5", "r+")

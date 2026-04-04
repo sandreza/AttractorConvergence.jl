@@ -11,12 +11,12 @@ tic = time()
 ticci = time()
 
 # create data directory if it's not there
-data_directory = "./data"
+data_directory = pwd() * "/data"
 isdir(data_directory ) ? nothing : mkdir(data_directory)
 
 ##
 # generate Lorenz data
-if isfile(data_directory  * "/lorenz.hdf5") 
+if isfile(data_directory  * "/lorenz_revision.hdf5") && isfile(data_directory  * "/lorenz_revision_coarse.hdf5") 
     @info "lorenz data already exists. skipping data generation"
 else
     @info "generating Lorenz data"
@@ -28,7 +28,8 @@ end
 ##
 include("utils.jl")
 ##
-if isfile(data_directory  * "/embedding.hdf5") 
+
+if isfile(data_directory  * "/embedding_revision.hdf5") 
     @info "embedding data already exists. skipping data generation"
 else
     @info "computing embedding"
@@ -37,7 +38,45 @@ else
     taka = time()
     println("Time for embedding data generation: ", (taka - tiki)/(60), " minutes")
 end
+
+
+if isfile(data_directory  * "/structured_embedding_revision.hdf5") 
+    @info "structured embedding data already exists. skipping data generation"
+else
+    @info "computing structured embedding"
+    tiki = time()
+    include("structured_partitions.jl")
+    taka = time()
+    println("Time for embedding data generation: ", (taka - tiki)/(60), " minutes")
+end
+
+if isfile(data_directory  * "/structured_embedding_revision_coarse.hdf5") 
+    @info "structured embedding data already exists. skipping data generation"
+else
+    @info "computing structured embedding"
+    tiki = time()
+    include("structured_partitions_coarse.jl")
+    taka = time()
+    println("Time for embedding data generation: ", (taka - tiki)/(60), " minutes")
+end
+
+if isfile(data_directory  * "/structured_eigenvalues_and_generators.hdf5") 
+    @info "structured eigenvalues and generators data already exists. skipping data generation"
+else
+    @info "computing structured eigenvalues and generators"
+    tiki = time()
+    include("structured_eigenvalues_and_generators.jl")
+    taka = time()
+    println("Time for structured eigenvalues and generators data generation: ", (taka - tiki)/(60), " minutes")
+    @info "computing structured eigenvalues and generators"
+    tiki = time()
+    include("rbf.jl")
+    taka = time()
+    println("Time for structured eigenvalues and generators data generation: ", (taka - tiki)/(60), " minutes")
+end
+
 ##
+#=
 if isfile(data_directory  * "/eigenvalues.hdf5") 
     @info "eigenvalue data already exists. skipping data generation"
 else
@@ -98,7 +137,7 @@ else
     println("Time for temporal autocorrelations: ", (taka - tiki)/(60), " minutes")
 end
 
-
+=#
 
 tacca = time()
 

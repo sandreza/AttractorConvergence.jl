@@ -3,13 +3,13 @@ using KernelAbstractions
 using KernelAbstractions: @kernel, @index
 
 @info "loading data for kmeans"
-hfile = h5open(data_directory  * "/lorenz.hdf5", "r")
+hfile = h5open(data_directory  * "/lorenz_revision.hdf5", "r")
 m_timeseries = read(hfile["timeseries"])
 s_timeseries = read(hfile["symmetrized timeseries"])
 joined_timeseries = hcat(m_timeseries, s_timeseries) # only for Partitioning Purpose
 close(hfile)
 @info "starting k-means"
-p_min = 1.3e-6
+p_min = 1.3e-5
 @info "computing embedding"
 Nmax = 50 * round(Int, 1/ p_min)
 skip = maximum([round(Int, size(joined_timeseries)[2] / Nmax), 1])
@@ -34,17 +34,15 @@ embedding = UnstructuredTree(global_to_local, centers_list, parent_to_children)
 
 partitions = zeros(Int64, size(joined_timeseries)[2])
 @info "computing partition trajectory"
-@kernel function compute_partition_trajectory!(embedding, partitions, joined_timeseries)
-    i = @index(Global, Linear)
+tic = Base.time()
+for i in ProgressBar(eachindex(partitions))
     @inbounds partitions[i] = embedding(joined_timeseries[:, i])
 end
-tic = Base.time()
-compute_partition_trajectory!(KernelAbstractions.CPU(), 256, length(partitions))(embedding, partitions, joined_timeseries)
 toc = Base.time()
 println("time for computing partition trajectory: ", toc - tic, " seconds")
 
 @info "saving embedding"
-hfile = h5open(data_directory  * "/embedding.hdf5", "w")
+hfile = h5open(data_directory  * "/embedding_revision.hdf5", "w")
 hfile["markov_chain"] = partitions
 hfile["probability"] = p_min
 close(hfile)
@@ -62,7 +60,7 @@ for i in ProgressBar(eachindex(probabilities))
 end
 
 @info "saving coarse embeddings"
-hfile = h5open(data_directory  * "/embedding.hdf5", "r+")
+hfile = h5open(data_directory  * "/embedding_revision.hdf5", "r+")
 hfile["coarse_probabilities"] = probabilities
 coarse_partitions = zeros(Int64, size(joined_timeseries)[2])
 for j in ProgressBar(eachindex(probabilities))
@@ -74,7 +72,7 @@ end
 close(hfile)
 ##
 @info "saving centers"
-hfile = h5open(data_directory  * "/centers.hdf5", "w")
+hfile = h5open(data_directory  * "/centers_revision.hdf5", "w")
 for i in ProgressBar(eachindex(probabilities))
     centers_list = zeros(3, length(local_to_globals[i]))
     for j in eachindex(local_to_globals[i])

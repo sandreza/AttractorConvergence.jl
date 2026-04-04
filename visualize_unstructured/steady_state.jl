@@ -1,5 +1,6 @@
 using HDF5, ProgressBars, CairoMakie
 # data_directory = "/nobackup1/sandre/AttractorConvergence/data/"
+data_directory = "./data/"
 hfile = h5open(data_directory * "time_mean_statistics.hdf5", "r")
 xmoments = read(hfile["x moments"])
 xcumulants = read(hfile["x cumulants"])
@@ -13,8 +14,10 @@ Npartitions = 25
 
 hfile = h5open(data_directory * "centers.hdf5", "r")
 centers = []
+log10partitions = zeros(Npartitions)
 for i in 1:Npartitions
     center = read(hfile["centers $i"])
+    log10partitions[i] = log10(size(center, 2))
     push!(centers, center)
 end
 close(hfile)
@@ -53,99 +56,26 @@ ls = 40
 lw = 5
 labels = ["κ₁", "κ₂", "κ₃", "κ₄", "κ₅", "κ₆"]
 log10cumulantserror = log10.(abs.(cumulants_list_model .- reshape(zcumulants, (1, length(observables))))) .- log10.(abs.(reshape(zcumulants, (1, length(observables)))))
-log10partition_numbers = log10.([size(centers[i])[2] for i in 1:Npartitions])
+log10partitions = log10.([size(centers[i])[2] for i in 1:Npartitions])
 colors = [:red, :green, :blue, :orange, :purple, :cyan, :magenta, :black, :white]
-fig = Figure(resolution = (2000, 1500))
-ax = Axis(fig[1, 1]; xlabel = "log10(partitions)", ylabel = "log10(relative error)", xlabelsize = ls, ylabelsize = ls, xticklabelsize = ls, yticklabelsize = ls)
-for i in 1:5
-    scatter!(ax, log10partition_numbers, log10cumulantserror[:, i], color = (colors[i]), markersize = 20, label = labels[i])
-end
-axislegend(ax, position=:rt, framecolor=(:grey, 0.5), patchsize=(50, 50), markersize=100, labelsize=40)
-lines!(ax, log10partition_numbers, - log10partition_numbers .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = lw, label = "-1 slope")
-# lines!(ax, log10partition_numbers, - log10partition_numbers / 2 .- 0.5, color = (:black, 0.5), linestyle=:dashdot, linewidth = lw, label = "-1/2 slope")
+fig = Figure(resolution = (750, 400), fontsize = 18)
+ax = Axis(fig[1, 1]; 
+          xlabel = L"\text{Cells}", 
+          ylabel = L"\text{Relative error}",
+          title  = L"\text{Cumulants of }z",
+          yticks = ([-6, -4, -2, 0], [L"10^{-6}", L"10^{-4}", L"10^{-2}", L"10^{0}"]),
+          xticks = ([2, 4, 6], [L"10^2", L"10^4", L"10^6"]))
 
-# figure_directory = pwd() * "/unstructured_figures"; figure_number = 3; save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
-#=
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 1], marker = '●',        markersize = 10, linewidth = 0.3, color = colors[1], label = L"\kappa_1")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 2], marker = '◆',        markersize = 10, linewidth = 0.3, color = colors[2], label = L"\kappa_2")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 3], marker = '■',        markersize = 10, linewidth = 0.3, color = colors[3], label = L"\kappa_3")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 4], marker = :hexagon,   markersize = 10, linewidth = 0.3, color = colors[4], label = L"\kappa_4")
+scatterlines!(ax, log10partitions, log10cumulantserror[:, 5], marker = :utriangle, markersize = 10, linewidth = 0.3, color = colors[5], label = L"\kappa_5")
 
-##
-observables = [i -> i[3]^j for j in 1:5]
-@info "computing observables from model"
-Npartitions = 14
-observables_list_model = zeros(Npartitions, length(observables))
-for i in ProgressBar(1:Npartitions)
-    p = probabilities[i]
-    for j in eachindex(p)
-        for k in eachindex(observables)
-            observables_list_model[i, k] += observables[k](centerslist[i][:, j]) .* p[j]
-        end
-    end
-end
-@info "plotting observables"
-##
+axislegend(ax, position=:rt, framecolor=(:grey, 0.5), framevisible = false) 
+lines!(ax, log10partitions, - log10partitions .+ 1., color = (:black, 0.5), linestyle=:dash, linewidth = 1.5)
 
-log10errors = log10.(abs.(observables_list_model .- reshape(observables_list, (1, length(observables)))))
+figure_directory = pwd() * "/unstructured_figures"; figure_number = 5; 
 
-colors = [:red, :green, :blue, :orange, :purple, :cyan, :magenta, :black, :white]
-fig = Figure()
-ax = Axis(fig[1, 1])
-log10partition_numbers = log10.([maximum(coarse_markov_chain[:, i]) for i in 1:Npartitions])
-for i in eachindex(observables)
-    scatter!(ax, log10partition_numbers, log10errors[:, i], color = (colors[i]))
-end
-lines!(ax, log10partition_numbers, - log10partition_numbers .+ 1, color = :black, linestyle=:dash)
-display(fig)
-
-##
-@info "calculating cumulants"
-# Cumulants 
-cumulants_list = similar(observables_list)
-cumulants_list[1] = observables_list[1]
-cumulants_list[2] = observables_list[2] - observables_list[1]^2
-cumulants_list[3] = observables_list[3] - 3 * observables_list[1] * observables_list[2] + 2 * observables_list[1]^3
-cumulants_list[4] = observables_list[4] - 4 * observables_list[1] * observables_list[3] - 3 * observables_list[2]^2 + 12 * observables_list[1]^2 * observables_list[2] - 6 * observables_list[1]^4
-cumulants_list[5] = observables_list[5] - 5 * observables_list[1] * observables_list[4] - 10 * observables_list[2] * observables_list[3] + 20 * observables_list[1]^2 * observables_list[3] + 30 * observables_list[1] * observables_list[2]^2 - 60 * observables_list[1]^3 * observables_list[2] + 24 * observables_list[1]^5
-cumulants_list[6] = observables_list[6] - 6 * observables_list[1] * observables_list[5] - 15 * observables_list[2] * observables_list[4] - 10 * observables_list[3]^2 + 60 * observables_list[1]^2 * observables_list[4] + 90 * observables_list[1] * observables_list[2] * observables_list[3] - 120 * observables_list[1]^3 * observables_list[3] - 120 * observables_list[1]^2 * observables_list[2]^2 + 210 * observables_list[1]^4 * observables_list[2] - 120 * observables_list[1]^6
-
-cumulants_list_model = similar(observables_list_model)
-cumulants_list_model[:, 1] = observables_list_model[:, 1]
-cumulants_list_model[:, 2] = observables_list_model[:, 2] - observables_list_model[:, 1].^2
-cumulants_list_model[:, 3] = observables_list_model[:, 3] - 3 * observables_list_model[:, 1] .* observables_list_model[:, 2] + 2 * observables_list_model[:, 1].^3
-cumulants_list_model[:, 4] = observables_list_model[:, 4] - 4 * observables_list_model[:, 1] .* observables_list_model[:, 3] - 3 * observables_list_model[:, 2].^2 + 12 * observables_list_model[:, 1].^2 .* observables_list_model[:, 2] - 6 * observables_list_model[:, 1].^4
-cumulants_list_model[:, 5] = observables_list_model[:, 5] - 5 * observables_list_model[:, 1] .* observables_list_model[:, 4] - 10 * observables_list_model[:, 2] .* observables_list_model[:, 3] + 20 * observables_list_model[:, 1].^2 .* observables_list_model[:, 3] + 30 * observables_list_model[:, 1] .* observables_list_model[:, 2].^2 - 60 * observables_list_model[:, 1].^3 .* observables_list_model[:, 2] + 24 * observables_list_model[:, 1].^5
-cumulants_list_model[:, 6] = observables_list_model[:, 6] - 6 * observables_list_model[:, 1] .* observables_list_model[:, 5] - 15 * observables_list_model[:, 2] .* observables_list_model[:, 4] - 10 * observables_list_model[:, 3].^2 + 60 * observables_list_model[:, 1].^2 .* observables_list_model[:, 4] + 90 * observables_list_model[:, 1] .* observables_list_model[:, 2] .* observables_list_model[:, 3] - 120 * observables_list_model[:, 1].^3 .* observables_list_model[:, 3] - 120 * observables_list_model[:, 1].^2 .* observables_list_model[:, 2].^2 + 210 * observables_list_model[:, 1].^4 .* observables_list_model[:, 2] - 120 * observables_list_model[:, 1].^6
-
-##
-@info "plotting cumulantsi"
-ms = 20
-ls = 40
-lw = 5
-labels = ["κ₁", "κ₂", "κ₃", "κ₄", "κ₅", "κ₆"]
-log10cumulantserror = log10.(abs.(cumulants_list_model .- reshape(cumulants_list, (1, length(observables)))))
-fig = Figure()
-ax = Axis(fig[1, 1]; xlabel = "log10(partitions)", ylabel = "log10(error)", xlabelsize = ls, ylabelsize = ls, xticklabelsize = ls, yticklabelsize = ls)
-for i in 1:5
-    scatter!(ax, log10partition_numbers, log10cumulantserror[:, i], color = (colors[i]), markersize = 20, label = labels[i])
-end
-axislegend(ax, position=:rt, framecolor=(:grey, 0.5), patchsize=(50, 50), markersize=100, labelsize=40)
-lines!(ax, log10partition_numbers, - log10partition_numbers .+ 2, color = (:black, 0.5), linestyle=:dash, linewidth = lw)
-display(fig)
-##
-#=
-log10cumulantsrelativeerror = log10.(abs.(cumulants_list_model ./ reshape(cumulants_list, (1, length(observables))) .- 1))
-ms = 20
-lw = 5
-fig = Figure()
-ax = Axis(fig[1, 1])
-for i in 1:5
-    scatter!(ax, log10partition_numbers, log10cumulantsrelativeerror[:, i], color = (colors[i]), markersize = ms)
-end
-lines!(ax, log10partition_numbers, - log10partition_numbers .+ 0, color = (:black, 0.5), linestyle=:dash, linewidth = lw)
-lines!(ax, log10partition_numbers, - 0.5 .* log10partition_numbers .+ 0, color = (:black, 0.5), linewidth = lw)
-display(fig)
-=#
-
-
-
-
-
-=#
+# save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
+save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)
