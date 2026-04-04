@@ -1,5 +1,6 @@
 using HDF5, ProgressBars, CairoMakie
 # data_directory = "/nobackup1/sandre/AttractorConvergence/data/"
+data_directory = "./data/"
 hfile = h5open(data_directory * "time_mean_statistics.hdf5", "r")
 xmoments = read(hfile["x moments"])
 xcumulants = read(hfile["x cumulants"])
@@ -13,8 +14,10 @@ Npartitions = 25
 
 hfile = h5open(data_directory * "centers.hdf5", "r")
 centers = []
+log10partitions = zeros(Npartitions)
 for i in 1:Npartitions
     center = read(hfile["centers $i"])
+    log10partitions[i] = log10(size(center, 2))
     push!(centers, center)
 end
 close(hfile)
@@ -53,7 +56,7 @@ ls = 40
 lw = 5
 labels = ["κ₁", "κ₂", "κ₃", "κ₄", "κ₅", "κ₆"]
 log10cumulantserror = log10.(abs.(cumulants_list_model .- reshape(zcumulants, (1, length(observables))))) .- log10.(abs.(reshape(zcumulants, (1, length(observables)))))
-log10partition_numbers = log10.([size(centers[i])[2] for i in 1:Npartitions])
+log10partitions = log10.([size(centers[i])[2] for i in 1:Npartitions])
 colors = [:red, :green, :blue, :orange, :purple, :cyan, :magenta, :black, :white]
 fig = Figure(resolution = (750, 400), fontsize = 18)
 ax = Axis(fig[1, 1]; 
@@ -70,9 +73,9 @@ scatterlines!(ax, log10partitions, log10cumulantserror[:, 4], marker = :hexagon,
 scatterlines!(ax, log10partitions, log10cumulantserror[:, 5], marker = :utriangle, markersize = 10, linewidth = 0.3, color = colors[5], label = L"\kappa_5")
 
 axislegend(ax, position=:rt, framecolor=(:grey, 0.5), framevisible = false) 
-lines!(ax, log10partitions, - log10partitions .+ 1., color = (:black, 0.5), linestyle=:dash, linewidth = 0.5)
+lines!(ax, log10partitions, - log10partitions .+ 1., color = (:black, 0.5), linestyle=:dash, linewidth = 1.5)
 
 figure_directory = pwd() * "/unstructured_figures"; figure_number = 5; 
 
-save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
+# save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)

@@ -79,9 +79,9 @@ scatterlines!(ax, log10partitions, log10cumulantserror[:, 7], markersize = 10, m
 scatterlines!(ax, log10partitions, log10cumulantserror[:, 9], markersize = 10, marker = :hexagon, linewidth = 0.3, color = colors[9], label = L"y - \kappa_4")
 
 axislegend(ax, position=:rt, framecolor=(:grey, 0.5), framevisible = false) 
-lines!(ax, log10partitions, - log10partitions .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = 0.5)
+lines!(ax, log10partitions, - log10partitions .+ 0.5, color = (:black, 0.5), linestyle=:dash, linewidth = 1.5)
 
 figure_directory = pwd() * "/unstructured_figures"; figure_number = 4; 
 
-save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
+# save(figure_directory * "/Figure" * string(figure_number) * ".eps", fig)
 save(figure_directory * "/Figure" * string(figure_number) * ".png", fig)

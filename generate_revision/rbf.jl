@@ -33,10 +33,24 @@ hfile["radial_basis_functions_3"] = radial_basis_functions_3
 hfile["normalized_radial_basis_functions_3"] = normalized_radial_basis_functions_3
 close(hfile)
 
-
-
 tic = Base.time()
-rbf_operator = normalized_radial_basis_functions[:, 2:1:end] * pinv(normalized_radial_basis_functions[:, 1:1:end-1])
+G = zeros(256, 256)
+A = zeros(256, 256)
+for k in ProgressBar(1:size(normalized_radial_basis_functions)[2])
+    tmp = normalized_radial_basis_functions[:, k]
+    @inbounds G .+= tmp * tmp'
+    if k < size(normalized_radial_basis_functions)[2]
+        tmp2 = normalized_radial_basis_functions[:, k+1]
+        @inbounds A .+= tmp * tmp2'
+    end
+end
+K = pinv(G) * A
+toc = Base.time()
+@info "time for operator: ", toc - tic, " seconds"
+
+rbf_operator = zeros(256, 256)
+tic = Base.time()
+rbf_operator .= normalized_radial_basis_functions[:, 2:1:end] * pinv(normalized_radial_basis_functions[:, 1:1:end-1])
 toc = Base.time()
 @info "time for operator: ", toc - tic, " seconds"
 
@@ -118,7 +132,7 @@ close(hfile)
 tic2 = Base.time()
 pf = perron_frobenius(coarse_markov_chains; step = 1)
 toc2 = Base.time()
-println("time for perron-frobenius: ", toc - tic, " seconds")
+println("time for perron-frobenius: ", toc2 - tic2, " seconds")
 
 Λ_bskmeans = eigvals(pf)
 
